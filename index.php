@@ -21,7 +21,7 @@ $act = $_GET['act'] ?? '/';
 
 // 6. Điều hướng bằng Switch (Dễ dùng hơn Match)
 switch ($act) {
-    
+
     // === TRANG CHỦ ===
     case '/':
     case 'home':
@@ -61,6 +61,9 @@ switch ($act) {
     case 'checklogin':
         (new UserController())->handleLogin();
         break;
+    case 'detailkh':
+        (new UserController())->detail();
+        break;
 
     // === MẶC ĐỊNH (404) ===
     default:
@@ -71,4 +74,3 @@ switch ($act) {
 }
 
 ob_end_flush();
-?>

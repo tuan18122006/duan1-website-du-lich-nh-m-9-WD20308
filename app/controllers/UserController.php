@@ -1,129 +1,180 @@
 <?php
 // app/controllers/UserController.php
 
-class UserController extends Controller {
+class UserController extends Controller
+{
     private $userModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->userModel = $this->model('UserModel');
     }
 
-    // ==================================================
-    // PHẦN 1: ADMIN QUẢN LÝ TÀI KHOẢN (CRUD)
-    // ==================================================
-
-    // 1. Danh sách tài khoản (Tương ứng 'listkh' trong mẫu)
-    public function index() {
+    // --- 1. DANH SÁCH TÀI KHOẢN (LIST) ---
+    public function index()
+    {
         $listkhachhang = $this->userModel->getAllUsers();
-        // Load view và truyền dữ liệu
         $this->view('users/index', ['listkhachhang' => $listkhachhang]);
     }
 
-    // 2. Form thêm mới (Tương ứng 'addkh' view)
-    public function create() {
+    // --- 2. FORM THÊM MỚI (CREATE) ---
+    public function create()
+    {
         $this->view('users/add');
     }
 
-    // ==================================================
-    // PHẦN 2: KHÁCH HÀNG (LOGIN / REGISTER)
-    // ==================================================
+    // --- 3. XỬ LÝ THÊM MỚI (STORE) ---
+    public function store()
+    {
+        if (isset($_POST['themoi'])) {
+            $username = $_POST['username'];
 
-    // Form đăng nhập
-    public function login() {
-        $this->view('auth/login');
-    }
-
-    // Xử lý đăng nhập (Tương ứng case 'dangnhap')
-    public function handleLogin() {
-        if (isset($_POST['dangnhap'])) {
-            $user = $_POST['user'];
-            $pass = $_POST['pass'];
-
-            $checkuser = $this->userModel->checkUser($user, $pass);
-
-            if (is_array($checkuser)) {
-                $_SESSION['user'] = $checkuser; // Lưu session
-                
-                // Nếu là admin thì vào trang quản trị, user thì về trang chủ
-                if ($checkuser['role'] == 1) {
-                    header('Location: ' . BASE_URL . 'user/index');
-                } else {
-                    header('Location: ' . BASE_URL);
-                }
-            } else {
-                $error = "Tài khoản hoặc mật khẩu sai!";
-                $this->view('auth/login', ['error' => $error]);
+            // Kiểm tra trùng tên đăng nhập
+            if ($this->userModel->checkUsernameExists($username)) {
+                $_SESSION['error'] = "Tên đăng nhập '$username' đã tồn tại!";
+                echo "<script>window.history.back();</script>";
+                return;
             }
+
+            $password = $_POST['password'];
+            $full_name = $_POST['full_name'];
+            $email = $_POST['email'];
+            $phone = $_POST['phone'];
+            $birthday = $_POST['birthday'];
+            $role = $_POST['role'];
+
+            // Xử lý upload ảnh
+            $avatar = "";
+            if (isset($_FILES['avatar']) && $_FILES['avatar']['size'] > 0) {
+                // Đổi tên file để tránh trùng & lỗi ký tự đặc biệt
+                $safeName = str_replace(' ', '_', $_FILES['avatar']['name']);
+                $avatar = time() . '_' . $safeName;
+                move_uploaded_file($_FILES['avatar']['tmp_name'], "assets/uploads/" . $avatar);
+            }
+
+            // Gọi Model thêm mới
+            if ($this->userModel->insertUser($username, $password, $full_name, $email, $phone, $birthday, $role, $avatar)) {
+                $_SESSION['success'] = "Thêm tài khoản mới thành công!";
+            } else {
+                $_SESSION['error'] = "Lỗi hệ thống, vui lòng thử lại!";
+            }
+
+            header('Location: index.php?act=listkh');
         }
     }
 
-    // Đăng xuất
-    public function logout() {
-        session_unset();
-        session_destroy();
-        header('Location: ' . BASE_URL . 'user/login');
-    }
-    public function edit() {
-        // Cũ: $url = explode... (Bỏ)
-        // Mới: Lấy từ ?id=...
+    // --- 4. FORM SỬA (EDIT) ---
+    public function edit()
+    {
         $id = $_GET['id'] ?? 0;
-
         if ($id > 0) {
             $khachhang = $this->userModel->getOne($id);
             $this->view('users/edit', ['khachhang' => $khachhang]);
         } else {
-            echo "ID không hợp lệ";
+            $_SESSION['error'] = "Không tìm thấy tài khoản!";
+            header('Location: index.php?act=listkh');
         }
     }
 
-    // Hàm UPDATE (Cập nhật)
-    public function update() {
-        // Lấy ID
-        $id = $_POST['user_id'] ?? $_GET['id'];
+    // --- 5. XỬ LÝ CẬP NHẬT (UPDATE) ---
+    public function update()
+    {
+        $id = $_POST['user_id'] ?? $_GET['id'] ?? 0;
 
         if (isset($_POST['capnhat']) && $id > 0) {
             $username = $_POST['username'];
             $password = $_POST['password'];
-            $full_name = $_POST['full_name']; // Mới thêm
+            $full_name = $_POST['full_name'];
             $email = $_POST['email'];
-            $phone = $_POST['phone'];         // Mới thêm
-            $birthday = $_POST['birthday'];   // Mới thêm
+            $phone = $_POST['phone'];
+            $birthday = $_POST['birthday'];
             $role = $_POST['role'];
 
-            // Gọi Model
-            $this->userModel->updateUser($id, $username, $password, $full_name, $email, $phone, $birthday, $role);
-            
-            header('Location: index.php?act=listkh'); 
+            // Lấy ảnh cũ mặc định
+            $avatar = $_POST['old_avatar'] ?? "";
+
+            // Nếu có chọn ảnh mới thì upload và lấy tên mới
+            if (isset($_FILES['avatar']) && $_FILES['avatar']['size'] > 0) {
+                $safeName = str_replace(' ', '_', $_FILES['avatar']['name']);
+                $avatar = time() . '_' . $safeName;
+                move_uploaded_file($_FILES['avatar']['tmp_name'], "assets/uploads/" . $avatar);
+            }
+
+            // Gọi Model cập nhật (Truyền đủ 9 tham số bao gồm avatar)
+            if ($this->userModel->updateUser($id, $username, $password, $full_name, $email, $phone, $birthday, $role, $avatar)) {
+                $_SESSION['success'] = "Cập nhật tài khoản thành công!";
+            } else {
+                $_SESSION['error'] = "Cập nhật thất bại!";
+            }
+
+            header('Location: index.php?act=listkh');
         }
     }
 
-    // SỬA LẠI HÀM DELETE
-    public function delete() {
+    // --- 6. XÓA (DELETE) ---
+    public function delete()
+    {
         $id = $_GET['id'] ?? 0;
-        
         if ($id > 0) {
-            $this->userModel->deleteUser($id);
+            if ($this->userModel->deleteUser($id)) {
+                $_SESSION['success'] = "Xóa tài khoản thành công!";
+            } else {
+                $_SESSION['error'] = "Xóa thất bại!";
+            }
         }
-        // Chuyển hướng kiểu cũ
         header('Location: index.php?act=listkh');
     }
 
-// Hàm STORE (Thêm mới)
-    public function store() {
-        if (isset($_POST['themoi'])) {
-            // Lấy dữ liệu từ form
-            $username = $_POST['username'];
-            $password = $_POST['password']; // Nhớ mã hóa nếu cần
-            $full_name = $_POST['full_name']; // Mới thêm
-            $email = $_POST['email'];
-            $phone = $_POST['phone'];         // Mới thêm
-            $birthday = $_POST['birthday'];   // Mới thêm
-            $role = $_POST['role'];
-
-            // Gọi Model
-            $this->userModel->insertUser($username, $password, $full_name, $email, $phone, $birthday, $role);
-            
+    // --- 7. XEM CHI TIẾT (DETAIL) ---
+    public function detail()
+    {
+        $id = $_GET['id'] ?? 0;
+        if ($id > 0) {
+            $khachhang = $this->userModel->getOne($id);
+            if ($khachhang) {
+                $this->view('users/detail', ['khachhang' => $khachhang]);
+            } else {
+                $_SESSION['error'] = "Không tìm thấy thông tin người dùng!";
+                header('Location: index.php?act=listkh');
+            }
+        } else {
             header('Location: index.php?act=listkh');
         }
+    }
+
+    // --- 8. ĐĂNG NHẬP (LOGIN) ---
+    public function login()
+    {
+        include 'app/views/clients/taikhoan/dangnhap.php';
+    }
+
+    public function handleLogin()
+    {
+        if (isset($_POST['dangnhap'])) {
+            $user = $_POST['user'];
+            $pass = $_POST['pass'];
+            $checkuser = $this->userModel->checkUser($user, $pass);
+
+            if (is_array($checkuser)) {
+                $_SESSION['user'] = $checkuser;
+                $_SESSION['success'] = "Đăng nhập thành công!";
+
+                if ($checkuser['role'] == 1) {
+                    header('Location: index.php?act=listkh');
+                } else {
+                    header('Location: index.php');
+                }
+            } else {
+                $thongbao = "Tài khoản hoặc mật khẩu sai!";
+                include 'app/views/clients/taikhoan/dangnhap.php';
+            }
+        }
+    }
+    // --- 9. ĐĂNG XUẤT (LOGOUT) ---
+    public function logout()
+    {
+        session_unset();
+        session_destroy();
+        header('Location: index.php');
     }
 }
