@@ -1,16 +1,12 @@
 <?php
+// File: app/core/Model.php
 
-class Model 
-{
+class Model {  // Tên class phải là Model
     protected $db;
 
-    public function __construct()
-    {
-        $this->db = new PDO(
-            "mysql:host=localhost;dbname=tour_manager;charset=utf8",
-            "root",
-            ""
-        );
-        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    public function __construct() {
+        // Đảm bảo hàm connectDB() đã có trong app/helpers/functions.php
+        $this->db = connectDB(); 
     }
 }
+?>

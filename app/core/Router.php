@@ -10,7 +10,7 @@ class Router
         $controllerName = ucfirst($url[0]) . "Controller";
         $method = $url[1] ?? 'index';
 
-        $controllerFile = "../app/controllers/$controllerName.php";
+        $controllerFile = "app/controllers/$controllerName.php";
 
         if (!file_exists($controllerFile)) {
             die("Controller $controllerName not found!");

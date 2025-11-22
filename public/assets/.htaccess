@@ -1,9 +1,0 @@
-Options -Indexes
-RewriteEngine On
-
-# Nếu file hoặc thư mục tồn tại thì không rewrite
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-
-# Tất cả route chuyển về index.php
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
