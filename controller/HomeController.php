@@ -1,7 +1,7 @@
 <?php
 class HomeController {
     public function index() {
-        require_once "home.php";
+        include_once "./view/admin/home.php";
     }
         function error404()
     {
