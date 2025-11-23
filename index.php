@@ -10,9 +10,12 @@ require_once 'app/core/Model.php';
 require_once 'app/core/Controller.php';
 
 require_once 'app/models/UserModel.php';
+require_once 'app/models/TourModel.php';
 // require_once 'app/models/TourModel.php';
 
 require_once 'app/controllers/UserController.php';
+require_once 'app/controllers/TourController.php';
+
 // require_once 'app/controllers/TourController.php';
 
 
@@ -25,7 +28,6 @@ switch ($act) {
     // === TRANG CHỦ ===
     case '/':
     case 'home':
-        echo "<h1>Đây là trang chủ</h1>"; // Bạn có thể gọi HomeController tại đây
         (new UserController())->index();
         break;
 
@@ -61,14 +63,19 @@ switch ($act) {
     case 'checklogin':
         (new UserController())->handleLogin();
         break;
+
     case 'detailkh':
         (new UserController())->detail();
+        break;
+
+    case 'cate_list':
+        (new TourController())->showTourCategory();
         break;
 
     // === MẶC ĐỊNH (404) ===
     default:
         echo "<h2>Lỗi 404: Trang không tồn tại!</h2>";
-        // Hoặc include file 404 nếu bạn đã tạo:
+        // Hoặc include file 404 nếu đã tạo:
         // include '../app/views/404.php';
         break;
 }
