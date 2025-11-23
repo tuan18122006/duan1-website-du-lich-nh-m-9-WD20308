@@ -14,9 +14,13 @@ class UserController extends Controller
     public function index()
     {
         $listkhachhang = $this->userModel->getAllUsers();
+<<<<<<< HEAD
         $view_path = "./app/views/users/index.php";
 
         require_once "./app/views/layouts/main.php";
+=======
+        $this->view('users/index', ['listkhachhang' => $listkhachhang]);
+>>>>>>> 207b1e9 (layout)
     }
 
     // --- 2. FORM THÊM MỚI (CREATE) ---
