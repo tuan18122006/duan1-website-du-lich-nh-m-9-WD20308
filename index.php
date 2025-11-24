@@ -15,6 +15,7 @@ require_once 'app/models/TourModel.php';
 
 require_once 'app/controllers/UserController.php';
 require_once 'app/controllers/TourController.php';
+require_once 'app/controllers/DashboardController.php';
 
 // require_once 'app/controllers/TourController.php';
 
@@ -28,7 +29,7 @@ switch ($act) {
     // === TRANG CHỦ ===
     case '/':
     case 'home':
-        (new UserController())->index();
+        (new DashboardController())->showDashboardCategory();
         break;
 
     // === QUẢN LÝ TÀI KHOẢN (USER) ===
@@ -68,8 +69,26 @@ switch ($act) {
         (new UserController())->detail();
         break;
 
-    case 'cate_list':
-        (new TourController())->showTourCategory();
+        // === DASHBOARD ===
+    case 'dashboard':
+        (new DashboardController())->showDashboardCategory();
+        break;
+
+        // === QUẢN LÝ TOUR ===
+    case 'tour_list':
+        (new TourController())->showTour();
+        break;
+
+    case 'add_tour':
+        (new TourController())->addTour();
+        break;
+
+    case 'delete_tour':
+        (new TourController())->deleteTour();
+        break;
+
+    case 'update_tour':
+        (new TourController())->updateTour();
         break;
 
     // === MẶC ĐỊNH (404) ===
