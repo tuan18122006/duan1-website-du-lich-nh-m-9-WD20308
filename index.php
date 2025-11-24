@@ -11,12 +11,10 @@ require_once 'app/core/Controller.php';
 
 require_once 'app/models/UserModel.php';
 require_once 'app/models/TourModel.php';
-// require_once 'app/models/TourModel.php';
 
 require_once 'app/controllers/UserController.php';
 require_once 'app/controllers/TourController.php';
 
-// require_once 'app/controllers/TourController.php';
 
 
 // 5. Lấy tham số act từ URL (mặc định là trang chủ)
@@ -68,10 +66,30 @@ switch ($act) {
         (new UserController())->detail();
         break;
 
-    case 'cate_list':
-        (new TourController())->showTourCategory();
+
+    // === QUẢN LÝ TÀI KHOẢN (USER) ===
+
+    case 'tour_list':
+        (new TourController())->showTour();
         break;
 
+    case 'add_tour':
+        (new TourController())->addTour();
+        break;
+
+    case 'delete_tour':
+        (new TourController())->deleteTour();
+        break;
+
+    case 'update_tour':
+        (new TourController())->updateTour();
+        break;
+
+
+
+
+
+        
     // === MẶC ĐỊNH (404) ===
     default:
         echo "<h2>Lỗi 404: Trang không tồn tại!</h2>";
