@@ -23,11 +23,7 @@
             <h2 class="profile-name"><?= $khachhang['full_name'] ?></h2>
 
             <span class="profile-role">
-                <?php
-                if ($khachhang['role'] == 1) echo 'Administrator';
-                elseif ($khachhang['role'] == 2) echo 'Nhân viên';
-                else echo 'Khách hàng'; // Role khác 1 và 2 (bao gồm 0) là Khách hàng
-                ?>
+            Người dùng
             </span>
         </div>
 

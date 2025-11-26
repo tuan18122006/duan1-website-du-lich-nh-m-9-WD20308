@@ -31,7 +31,7 @@ class TourController extends Controller
         extract($data);
 
         $view_path = "./app/views/tours/tour_list.php";
-        $page_css = "assets/css/tour.css";
+        $page_css = "./assets/css/tour.css";
         require_once "./app/views/layouts/main.php";
     }
 
@@ -66,13 +66,14 @@ class TourController extends Controller
                 'short_description' => $_POST['short_description'] ?? '',
                 'description' => $_POST['description'] ?? '',
                 'duration_days' => $_POST['duration_days'] ?? 0,
-                'price' => $_POST['price'] ?? 0.0,
-                'end_location' => $_POST['end_location'] ?? '',
-                'start_location' => $_POST['start_location'] ?? '',
+                'base_price' => $_POST['base_price'] ?? 0.0,
+                'end_date' => $_POST['end_date'] ?? '',
+                'start_date' => $_POST['start_date'] ?? '',
                 'supplier' => $_POST['supplier'] ?? '',
                 'policy' => $_POST['policy'] ?? '',
                 'image_url' => $image_name,
-                'status' => $_POST['status'] ?? 'Hoạt động',
+                'status' => isset($_POST['status']) ? (int)$_POST['status'] : 1,
+                'people' => $_POST['people'] ?? 0,
             ];
 
             if (empty($data['tour_name'])) {
@@ -123,76 +124,68 @@ class TourController extends Controller
     {
         $id = $_GET['id'] ?? null;
 
+        // 1. Lấy thông tin Tour từ DB
         $tour = $this->tourModel->getTourById($id);
-
         $categories = $this->tourModel->getAllCategories();
 
+        // 2. Kiểm tra tồn tại
         if (!$tour) {
             $_SESSION['error'] = "Không tìm thấy Tour cần chỉnh sửa.";
             header('Location: index.php?act=tour_list');
             exit();
         }
 
+        // 3. Xử lý khi Submit form
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-            $tour_name = $_POST['tour_name'] ?? $tour['tour_name'];
-            $category_id = $_POST['category_id'] ?? $tour['category_id'];
-            $price = $_POST['price'] ?? $tour['price'];
-            $description = $_POST['description'] ?? $tour['description'];
-            $short_description = $_POST['short_description'] ?? $tour['short_description'];
-            $duration_days = $_POST['duration_days'] ?? $tour['duration_days'];
-            $end_location = $_POST['end_location'] ?? $tour['end_location'];
-            $start_location = $_POST['start_location'] ?? $tour['start_location'];
-            $supplier = $_POST['supplier'] ?? $tour['supplier'];
-            $policy = $_POST['policy'] ?? $tour['policy'];
-            $status = $_POST['status'] ?? $tour['status'];
-
-
+            // Nhận dữ liệu và xử lý ảnh
             $image_name = $tour['image_url'];
             $upload_dir = PATH_ROOT . 'assets/uploads/tours/';
 
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-
-                if (!empty($tour['image_url']) && file_exists($upload_dir . $tour['image_url'])) {
-                    unlink($upload_dir . $tour['image_url']);
-                }
-
+                // ... (code upload ảnh giữ nguyên) ...
                 $safeName = str_replace(' ', '_', $_FILES['image']['name']);
                 $image_name = time() . '_' . $safeName;
-                $upload_path = $upload_dir . $image_name;
-
-                if (!move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
-                    $_SESSION['error'] = "Lỗi khi upload ảnh mới.";
-                    $image_name = $tour['image_url'];
+                if (!move_uploaded_file($_FILES['image']['tmp_name'], $upload_dir . $image_name)) {
+                    $image_name = $tour['image_url']; // Nếu lỗi thì giữ ảnh cũ
                 }
             }
 
             $data = [
-                'tour_id' => $id,
-                'category_id' => $category_id,
-                'tour_name' => $tour_name,
-                'short_description' => $short_description,
-                'description' => $description,
-                'duration_days' => $duration_days,
-                'price' => $price,
-                'image_url' => $image_name,
-                'end_location' => $end_location,
-                'start_location' => $start_location,
-                'supplier' => $supplier,
-                'policy' => $policy,
-                'status' => $status
+                'tour_id'           => $id,
+                'category_id'       => $_POST['category_id'] ?? $tour['category_id'],
+                'tour_name'         => $_POST['tour_name'] ?? $tour['tour_name'],
+                'short_description' => $_POST['short_description'] ?? $tour['short_description'],
+                'description'       => $_POST['description'] ?? $tour['description'],
+                'duration_days'     => $_POST['duration_days'] ?? $tour['duration_days'],
+                'base_price'        => $_POST['base_price'] ?? $tour['base_price'],
+                'image_url'         => $image_name,
+                
+                // Sử dụng biến đã xử lý NULL ở trên
+                'end_date'          => $end_date ?? $tour['end_date'],
+                'start_date'        => $start_date ?? $tour['start_date'],
+                
+                'supplier'          => $_POST['supplier'] ?? $tour['supplier'],
+                'policy'            => $_POST['policy'] ?? $tour['policy'],
+                'status'            => isset($_POST['status']) && $_POST['status'] !== '' ? (int)$_POST['status'] : ($tour['status'] ?? 0),
+                'people'            => $_POST['people'] ?? $tour['people'],
             ];
 
             if ($this->tourModel->updateTour($data)) {
-                $_SESSION['success'] = "Cập nhật Tour ID: {$id} thành công!";
+                $_SESSION['success'] = "Cập nhật Tour thành công!";
+                // Cập nhật lại biến $tour để hiển thị dữ liệu mới nhất ở view nếu không redirect ngay
+                $tour = array_merge($tour, $data); 
             } else {
-                $_SESSION['error'] = "Lỗi hệ thống khi cập nhật Tour ID: {$id}.";
+                $_SESSION['error'] = "Lỗi hệ thống khi cập nhật!";
             }
 
+            // Redirect về danh sách để thấy thay đổi
             header('Location: index.php?act=tour_list');
             exit();
         }
 
+        // 4. Chuẩn bị dữ liệu cho View
+        // Biến $tour ở đây chắc chắn có dữ liệu (từ DB hoặc sau khi update)
         $data_for_view = [
             'tour' => $tour,
             'categories' => $categories

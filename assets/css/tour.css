@@ -1,8 +1,35 @@
-/* --- Cấu trúc chung --- */
-body {
-    background-color: #f4f6f9; /* Màu nền xám nhạt như hình */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
+
+.header-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.header-title {
+    color: #5a6b7c;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.btn-add {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.btn-add:hover {
+    background-color: #2980b9;
 }
 
 .row .text h1 {
@@ -110,16 +137,6 @@ body {
     border-top: 1px solid #eee;
 }
 
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    text-decoration: none;
-    display: inline-block;
-    font-weight: 500;
-}
 
 .btn-primary {
     background-color: #0d6efd; /* Màu xanh dương */

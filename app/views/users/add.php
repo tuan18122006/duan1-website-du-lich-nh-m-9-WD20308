@@ -53,16 +53,6 @@
                         <input type="date" name="birthday">
                     </div>
 
-                    <div class="form-group full">
-                        <label>Vai trò (*)</label>
-                        <select name="role">
-                            <option value="0">Khách hàng (Người dùng)</option>
-                            <option value="2">Nhân viên</option>
-                            <!-- Đã xóa Admin (value="1") -->
-                        </select>
-                    </div>
-                </div>
-
                 <div style="text-align: right;">
                     <button type="submit" name="themoi" class="btn-submit"> <i class="fas fa-save"></i> Lưu lại</button>
                 </div>

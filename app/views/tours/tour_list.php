@@ -1,3 +1,8 @@
+    <div class="header-action" >
+        <h2 class="header-title">Quản lý tour</h2>
+        <a href="index.php?act=add_tour" class="btn-add"><i class="fas fa-plus"></i> Thêm mới</a>
+    </div>
+
 <div style="margin-bottom: 15px;">
     <select class="form-select"
         aria-label="Default select example"
@@ -9,9 +14,7 @@
     </select>
 </div>
 
-<div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-    <a href="?act=add_tour" class="btn btn-primary"> Thêm Tour Mới </a>
-</div>
+
 
 <div>
     <table class="table">
@@ -23,6 +26,7 @@
                 <th scope="col">Ảnh</th>
                 <th scope="col">Short description</th>
                 <th scope="col">Duration</th>
+                <th scope="col">số khách tối đa</th>
                 <th scope="col">Status</th>
                 <th scope="col">Hành động</th>
             </tr>
@@ -39,7 +43,13 @@
                         </td>
                         <td><?= htmlspecialchars($tour['short_description']) ?></td>
                         <td><?= htmlspecialchars($tour['duration_days']) ?></td>
-                        <td><?= htmlspecialchars($tour['status']) ?></td>
+                        <td><?= htmlspecialchars($tour['base_price']) ?></td>
+                        <td>
+                            <?= ($tour['status'] == 1) 
+                                ? '<span style="color: green;">Đang mở</span>' 
+                                : '<span style="color: red;">Đã đóng</span>' 
+                            ?>
+                        </td>
                         <td style="white-space: nowrap;">
                             <a href="?act=update_tour&id=<?= htmlspecialchars($tour['tour_id']) ?>" class="btn btn-warning" style="margin-right: 5px;">Sửa</a>
                             <a href="?act=delete_tour&id=<?= htmlspecialchars($tour['tour_id']) ?>"

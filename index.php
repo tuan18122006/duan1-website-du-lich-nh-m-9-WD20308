@@ -11,11 +11,13 @@ require_once 'app/core/Controller.php';
 
 require_once 'app/models/UserModel.php';
 require_once 'app/models/TourModel.php';
+require_once 'app/models/GuideModel.php';
 // require_once 'app/models/TourModel.php';
 
 require_once 'app/controllers/UserController.php';
 require_once 'app/controllers/TourController.php';
 require_once 'app/controllers/DashboardController.php';
+require_once 'app/controllers/GuideController.php';
 
 // require_once 'app/controllers/TourController.php';
 
@@ -91,11 +93,37 @@ switch ($act) {
         (new TourController())->updateTour();
         break;
 
-    // === MẶC ĐỊNH (404) ===
+
+            // === QUẢN LÝ HDV ===
+    case 'list_guide':
+        (new GuideController())->index();
+        break;
+    
+    case 'add_guide':
+        (new GuideController())->create();
+        break;
+
+    case 'store_guide':
+        (new GuideController())->store();
+        break;
+
+    case 'edit_guide':
+        (new GuideController())->edit();
+        break;
+
+    case 'update_guide':
+        (new GuideController())->update();
+        break;
+
+    case 'detail_guide':
+        (new GuideController())->detail();
+        break;
+
+    case 'delete_guide':
+        (new GuideController())->delete();
+        break;
     default:
         echo "<h2>Lỗi 404: Trang không tồn tại!</h2>";
-        // Hoặc include file 404 nếu đã tạo:
-        // include '../app/views/404.php';
         break;
 }
 

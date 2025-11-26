@@ -14,11 +14,7 @@
                     <div class="card-header">
                         <span class="status-active"><i class="fas fa-check-circle"></i> Đã kích hoạt</span>
 
-                        <?php
-                        if ($kh['role'] == 1) echo '<span class="role-badge role-admin">Admin</span>';
-                        elseif ($kh['role'] == 2) echo '<span class="role-badge role-staff">Nhân viên</span>';
-                        else echo '<span class="role-badge role-user">Khách hàng</span>';
-                        ?>
+                    <span class="role-badge role-user">Người dùng</span>
                     </div>
 
                     <!-- Body -->

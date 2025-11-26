@@ -142,7 +142,7 @@ class UserController extends Controller
         if ($id > 0) {
             $khachhang = $this->userModel->getOne($id);
             if ($khachhang) {
-            $view_path = "app/views/users/edit.php";
+            $view_path = "app/views/users/detail.php";
             $page_css = "assets/css/user.css";
             // Lưu ý: Biến $khachhang ở trên sẽ tự động được truyền sang file edit.php 
             // vì chúng ta require file trong cùng 1 hàm.
