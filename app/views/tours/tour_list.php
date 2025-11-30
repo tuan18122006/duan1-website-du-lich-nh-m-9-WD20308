@@ -3,31 +3,19 @@
         <a href="index.php?act=add_tour" class="btn-add"><i class="fas fa-plus"></i> Thêm mới</a>
     </div>
 
-<div style="margin-bottom: 15px;">
-    <select class="form-select"
-        aria-label="Default select example"
-        name="category_filter"
-        onchange="applyFilter(this.value)">
-        <option value="Tất cả" <?= ($category_filter ?? 'Tất cả') === 'Tất cả' ? 'selected' : '' ?>>Tất cả</option>
-        <option value="1" <?= ($category_filter ?? 0) == 1 ? 'selected' : '' ?>>Trong nước</option>
-        <option value="2" <?= ($category_filter ?? 0) == 2 ? 'selected' : '' ?>>Ngoài nước</option>
-    </select>
-</div>
-
 
 
 <div>
     <table class="table">
         <thead>
             <tr>
-                <th scope="col">#</th>
-                <th scope="col">Category</th>
-                <th scope="col">Tour name</th>
+                <th scope="col">Danh mục</th>
+                <th scope="col">Tên tour</th>
                 <th scope="col">Ảnh</th>
-                <th scope="col">Short description</th>
-                <th scope="col">Duration</th>
-                <th scope="col">số khách tối đa</th>
-                <th scope="col">Status</th>
+                <th scope="col">Mô tả ngắn</th>
+                <th scope="col">Số lượng</th>
+                <th scope="col">Giá tiền</th>
+                <th scope="col">Trạng thái</th>
                 <th scope="col">Hành động</th>
             </tr>
         </thead>
@@ -35,14 +23,13 @@
             <?php if (!empty($tour_list)): ?>
                 <?php foreach ($tour_list as $tour): ?>
                     <tr>
-                        <th scope="row"><?= htmlspecialchars($tour['tour_id']) ?></th>
                         <td><?= htmlspecialchars($tour['category_name'] ?? 'N/A') ?></td>
                         <td><?= htmlspecialchars($tour['tour_name']) ?></td>
                         <td>
                             <img src="assets/uploads/tours/<?= htmlspecialchars($tour['image_url']) ?>" style="height: 80px; object-fit: cover;">
                         </td>
                         <td><?= htmlspecialchars($tour['short_description']) ?></td>
-                        <td><?= htmlspecialchars($tour['duration_days']) ?></td>
+                        <td><?= htmlspecialchars($tour['people']) ?></td>
                         <td><?= htmlspecialchars($tour['base_price']) ?></td>
                         <td>
                             <?= ($tour['status'] == 1) 
@@ -51,10 +38,16 @@
                             ?>
                         </td>
                         <td style="white-space: nowrap;">
-                            <a href="?act=update_tour&id=<?= htmlspecialchars($tour['tour_id']) ?>" class="btn btn-warning" style="margin-right: 5px;">Sửa</a>
+                            <a href="index.php?act=tour_bookings&id=<?= $tour['tour_id'] ?>" 
+                            class="btn btn-primary btn-sm" 
+                            title="Xem danh sách khách & Kích hoạt tour">
+                            <i class="fas fa-users-cog"></i> QL Khách
+                            </a>
+                            <a href="?act=update_tour&id=<?= htmlspecialchars($tour['tour_id']) ?>" class="btn btn-primary btn-sm" style="margin-right: 5px;">Sửa</a>
+                            <a href="index.php?act=detail_tour&id=<?= $tour['tour_id'] ?>" class="btn btn-primary btn-sm" style="margin-right: 5px;">Chi tiết</a>
                             <a href="?act=delete_tour&id=<?= htmlspecialchars($tour['tour_id']) ?>"
                                 onclick="return confirm('Bạn có chắc muốn xóa tour này?')"
-                                class="btn btn-danger">Xóa
+                                class="btn btn-primary btn-sm">Xóa
                             </a>
                         </td>
                     </tr>

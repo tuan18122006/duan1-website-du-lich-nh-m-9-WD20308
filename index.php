@@ -14,6 +14,7 @@ require_once 'app/models/TourModel.php';
 require_once 'app/models/GuideModel.php';
 require_once 'app/models/LoginModel.php';
 require_once 'app/models/GuideModel.php';
+require_once 'app/models/BookingModel.php';
 // require_once 'app/models/TourModel.php';
 
 require_once 'app/controllers/UserController.php';
@@ -22,6 +23,7 @@ require_once 'app/controllers/DashboardController.php';
 require_once 'app/controllers/GuideController.php';
 require_once 'app/controllers/LoginController.php';
 require_once 'app/controllers/GuideController.php';
+require_once 'app/controllers/BookingController.php';
 
 // require_once 'app/controllers/TourController.php';
 
@@ -108,6 +110,12 @@ switch ($act) {
     case 'update_tour':
         (new TourController())->updateTour();
         break;
+    case 'detail_tour':
+        (new TourController())->detailTour();
+        break;
+case 'tour_bookings':
+        (new TourController())->tourBookings();
+        break;
 
 
             // === QUẢN LÝ HDV ===
@@ -138,6 +146,19 @@ switch ($act) {
     case 'delete_guide':
         (new GuideController())->delete();
         break;
+
+
+    // booking //
+    case 'booking_list':
+        (new BookingController())->index();
+        break;
+    case 'booking_add':
+        (new BookingController())->add();
+        break;
+    case 'booking_detail':
+        (new BookingController())->detail();
+        break;
+
     default:
         echo "<h2>Lỗi 404: Trang không tồn tại!</h2>";
         break;

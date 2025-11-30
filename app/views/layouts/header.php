@@ -265,8 +265,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#orders">
-                    <i class="bi bi-receipt me-2"></i> Bán tour và đặt chỗ
+                <a class="nav-link" href="index.php?act=booking_list">
+                    <i class="bi bi-receipt me-2"></i> Quản lí Booking
                 </a>
             </li>
             <li class="nav-item mt-3 px-3">
@@ -311,7 +311,7 @@
                 <li class="nav-item"><a class="nav-link" href="index.php?act=listkh"><i class="bi bi-people me-3"></i>Người dùng</a></li>
                 <li class="nav-item"><a class="nav-link" href="index.php?act=list_guide"><i class="fas fa-id-card me-3"></i>Hướng dẫn viên</a></li>
                 <li class="nav-item"><a class="nav-link" href="index.php?act=tour_list"><i class="bi bi-box-seam me-3"></i>Quản lí Tour</a></li>
-                <li class="nav-item"><a class="nav-link" href="#orders"><i class="bi bi-receipt me-3"></i>Bán tour và đặt chỗ</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php?act=booking_list"><i class="bi bi-receipt me-3"></i>Quản lí Booking</a></li>
             </ul>
         </div>
     </div>
