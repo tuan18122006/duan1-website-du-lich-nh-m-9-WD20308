@@ -13,6 +13,7 @@ require_once 'app/models/UserModel.php';
 require_once 'app/models/TourModel.php';
 require_once 'app/models/GuideModel.php';
 require_once 'app/models/LoginModel.php';
+require_once 'app/models/GuideModel.php';
 // require_once 'app/models/TourModel.php';
 
 require_once 'app/controllers/UserController.php';
@@ -20,6 +21,7 @@ require_once 'app/controllers/TourController.php';
 require_once 'app/controllers/DashboardController.php';
 require_once 'app/controllers/GuideController.php';
 require_once 'app/controllers/LoginController.php';
+require_once 'app/controllers/GuideController.php';
 
 // require_once 'app/controllers/TourController.php';
 
