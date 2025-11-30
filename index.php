@@ -11,24 +11,43 @@ require_once 'app/core/Controller.php';
 
 require_once 'app/models/UserModel.php';
 require_once 'app/models/TourModel.php';
+require_once 'app/models/GuideModel.php';
+require_once 'app/models/LoginModel.php';
+require_once 'app/models/GuideModel.php';
 // require_once 'app/models/TourModel.php';
 
 require_once 'app/controllers/UserController.php';
 require_once 'app/controllers/TourController.php';
+require_once 'app/controllers/DashboardController.php';
+require_once 'app/controllers/GuideController.php';
+require_once 'app/controllers/LoginController.php';
+require_once 'app/controllers/GuideController.php';
 
 // require_once 'app/controllers/TourController.php';
 
 
 // 5. Lấy tham số act từ URL (mặc định là trang chủ)
-$act = $_GET['act'] ?? '/';
+$act = $_GET['act'] ?? 'login';
 
 // 6. Điều hướng bằng Switch (Dễ dùng hơn Match)
 switch ($act) {
 
     // === TRANG CHỦ ===
-    case '/':
+    // === LOGIN ===
+    case 'login':             // Hiển thị form login
+        (new LoginController())->index();
+        break;
+
+    case 'login_action':      // Xử lý login
+        (new LoginController())->login();
+        break;
+
+    case 'logout':            // Đăng xuất
+        (new LoginController())->logout();
+        break;
+
     case 'home':
-        (new UserController())->index();
+        (new DashboardController())->showDashboardCategory();
         break;
 
     // === QUẢN LÝ TÀI KHOẢN (USER) ===
@@ -56,27 +75,71 @@ switch ($act) {
         (new UserController())->delete();
         break;
 
-    case 'login':
-        (new UserController())->login();
-        break;
+    // case 'login':
+    //     (new UserController())->login();
+    //     break;
 
-    case 'checklogin':
-        (new UserController())->handleLogin();
-        break;
+    // case 'checklogin':
+    //     (new UserController())->handleLogin();
+    //     break;
 
     case 'detailkh':
         (new UserController())->detail();
         break;
 
-    case 'cate_list':
-        (new TourController())->showTourCategory();
+        // === DASHBOARD ===
+    case 'dashboard':
+        (new DashboardController())->showDashboardCategory();
         break;
 
-    // === MẶC ĐỊNH (404) ===
+        // === QUẢN LÝ TOUR ===
+    case 'tour_list':
+        (new TourController())->showTour();
+        break;
+
+    case 'add_tour':
+        (new TourController())->addTour();
+        break;
+
+    case 'delete_tour':
+        (new TourController())->deleteTour();
+        break;
+
+    case 'update_tour':
+        (new TourController())->updateTour();
+        break;
+
+
+            // === QUẢN LÝ HDV ===
+    case 'list_guide':
+        (new GuideController())->index();
+        break;
+    
+    case 'add_guide':
+        (new GuideController())->create();
+        break;
+
+    case 'store_guide':
+        (new GuideController())->store();
+        break;
+
+    case 'edit_guide':
+        (new GuideController())->edit();
+        break;
+
+    case 'update_guide':
+        (new GuideController())->update();
+        break;
+
+    case 'detail_guide':
+        (new GuideController())->detail();
+        break;
+
+    case 'delete_guide':
+        (new GuideController())->delete();
+        break;
     default:
         echo "<h2>Lỗi 404: Trang không tồn tại!</h2>";
-        // Hoặc include file 404 nếu đã tạo:
-        // include '../app/views/404.php';
         break;
 }
 

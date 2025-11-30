@@ -14,19 +14,19 @@ class UserController extends Controller
     public function index()
     {
         $listkhachhang = $this->userModel->getAllUsers();
-<<<<<<< HEAD
-        $view_path = "./app/views/users/index.php";
-
+        $page_css = "assets/css/user.css";
+        // $this->view('users/index', ['listkhachhang' => $listkhachhang]);
+        $view_path = "app/views/users/index.php";
         require_once "./app/views/layouts/main.php";
-=======
-        $this->view('users/index', ['listkhachhang' => $listkhachhang]);
->>>>>>> 207b1e9 (layout)
     }
 
     // --- 2. FORM THÊM MỚI (CREATE) ---
     public function create()
     {
-        $this->view('users/add');
+        $view_path = "app/views/users/add.php"; 
+        $page_css = "assets/css/user.css";
+        // Gọi Layout chính (Nó sẽ tự có Header + Sidebar + Form Add)
+        require_once "./app/views/layouts/main.php";
     }
 
     // --- 3. XỬ LÝ THÊM MỚI (STORE) ---
@@ -75,7 +75,11 @@ class UserController extends Controller
         $id = $_GET['id'] ?? 0;
         if ($id > 0) {
             $khachhang = $this->userModel->getOne($id);
-            $this->view('users/edit', ['khachhang' => $khachhang]);
+            $view_path = "app/views/users/edit.php";
+            $page_css = "assets/css/user.css";
+            // Lưu ý: Biến $khachhang ở trên sẽ tự động được truyền sang file edit.php 
+            // vì chúng ta require file trong cùng 1 hàm.
+            require_once "./app/views/layouts/main.php";
         } else {
             $_SESSION['error'] = "Không tìm thấy tài khoản!";
             header('Location: index.php?act=listkh');
@@ -138,7 +142,11 @@ class UserController extends Controller
         if ($id > 0) {
             $khachhang = $this->userModel->getOne($id);
             if ($khachhang) {
-                $this->view('users/detail', ['khachhang' => $khachhang]);
+            $view_path = "app/views/users/detail.php";
+            $page_css = "assets/css/user.css";
+            // Lưu ý: Biến $khachhang ở trên sẽ tự động được truyền sang file edit.php 
+            // vì chúng ta require file trong cùng 1 hàm.
+            require_once "./app/views/layouts/main.php";
             } else {
                 $_SESSION['error'] = "Không tìm thấy thông tin người dùng!";
                 header('Location: index.php?act=listkh');
@@ -149,38 +157,38 @@ class UserController extends Controller
     }
 
     // --- 8. ĐĂNG NHẬP (LOGIN) ---
-    public function login()
-    {
-        include 'app/views/clients/taikhoan/dangnhap.php';
-    }
+    // public function login()
+    // {
+    //     include 'app/views/clients/taikhoan/dangnhap.php';
+    // }
 
-    public function handleLogin()
-    {
-        if (isset($_POST['dangnhap'])) {
-            $user = $_POST['user'];
-            $pass = $_POST['pass'];
-            $checkuser = $this->userModel->checkUser($user, $pass);
+    // public function handleLogin()
+    // {
+    //     if (isset($_POST['dangnhap'])) {
+    //         $user = $_POST['user'];
+    //         $pass = $_POST['pass'];
+    //         $checkuser = $this->userModel->checkUser($user, $pass);
 
-            if (is_array($checkuser)) {
-                $_SESSION['user'] = $checkuser;
-                $_SESSION['success'] = "Đăng nhập thành công!";
+    //         if (is_array($checkuser)) {
+    //             $_SESSION['user'] = $checkuser;
+    //             $_SESSION['success'] = "Đăng nhập thành công!";
 
-                if ($checkuser['role'] == 1) {
-                    header('Location: index.php?act=listkh');
-                } else {
-                    header('Location: index.php');
-                }
-            } else {
-                $thongbao = "Tài khoản hoặc mật khẩu sai!";
-                include 'app/views/clients/taikhoan/dangnhap.php';
-            }
-        }
-    }
-    // --- 9. ĐĂNG XUẤT (LOGOUT) ---
-    public function logout()
-    {
-        session_unset();
-        session_destroy();
-        header('Location: index.php');
-    }
+    //             if ($checkuser['role'] == 1) {
+    //                 header('Location: index.php?act=listkh');
+    //             } else {
+    //                 header('Location: index.php');
+    //             }
+    //         } else {
+    //             $thongbao = "Tài khoản hoặc mật khẩu sai!";
+    //             include 'app/views/clients/taikhoan/dangnhap.php';
+    //         }
+    //     }
+    // }
+    // // --- 9. ĐĂNG XUẤT (LOGOUT) ---
+    // public function logout()
+    // {
+    //     session_unset();
+    //     session_destroy();
+    //     header('Location: index.php');
+    // }
 }
