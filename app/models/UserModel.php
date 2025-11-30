@@ -3,7 +3,6 @@
 
 class UserModel extends Model
 {
-
     // 1. Lấy danh sách user
     public function getAllUsers()
     {
@@ -84,19 +83,19 @@ class UserModel extends Model
     }
 
     // 6. Check đăng nhập
-    public function checkUser($username, $password)
-    {
-        $sql = "SELECT * FROM users WHERE username = :username";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['username' => $username]);
-        $user = $stmt->fetch();
+    // public function checkUser($username, $password)
+    // {
+    //     $sql = "SELECT * FROM users WHERE username = :username";
+    //     $stmt = $this->db->prepare($sql);
+    //     $stmt->execute(['username' => $username]);
+    //     $user = $stmt->fetch();
 
-        // Kiểm tra pass (Nếu dùng hash thì dùng password_verify)
-        if ($user && $user['password'] == $password) {
-            return $user;
-        }
-        return false;
-    }
+    //     // Kiểm tra pass (Nếu dùng hash thì dùng password_verify)
+    //     if ($user && $user['password'] == $password) {
+    //         return $user;
+    //     }
+    //     return false;
+    // }
 
     // 7. Check trùng username
     public function checkUsernameExists($username)

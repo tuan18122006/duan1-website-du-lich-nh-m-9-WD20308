@@ -142,7 +142,7 @@ class UserController extends Controller
         if ($id > 0) {
             $khachhang = $this->userModel->getOne($id);
             if ($khachhang) {
-            $view_path = "app/views/users/edit.php";
+            $view_path = "app/views/users/detail.php";
             $page_css = "assets/css/user.css";
             // Lưu ý: Biến $khachhang ở trên sẽ tự động được truyền sang file edit.php 
             // vì chúng ta require file trong cùng 1 hàm.
@@ -157,38 +157,38 @@ class UserController extends Controller
     }
 
     // --- 8. ĐĂNG NHẬP (LOGIN) ---
-    public function login()
-    {
-        include 'app/views/clients/taikhoan/dangnhap.php';
-    }
+    // public function login()
+    // {
+    //     include 'app/views/clients/taikhoan/dangnhap.php';
+    // }
 
-    public function handleLogin()
-    {
-        if (isset($_POST['dangnhap'])) {
-            $user = $_POST['user'];
-            $pass = $_POST['pass'];
-            $checkuser = $this->userModel->checkUser($user, $pass);
+    // public function handleLogin()
+    // {
+    //     if (isset($_POST['dangnhap'])) {
+    //         $user = $_POST['user'];
+    //         $pass = $_POST['pass'];
+    //         $checkuser = $this->userModel->checkUser($user, $pass);
 
-            if (is_array($checkuser)) {
-                $_SESSION['user'] = $checkuser;
-                $_SESSION['success'] = "Đăng nhập thành công!";
+    //         if (is_array($checkuser)) {
+    //             $_SESSION['user'] = $checkuser;
+    //             $_SESSION['success'] = "Đăng nhập thành công!";
 
-                if ($checkuser['role'] == 1) {
-                    header('Location: index.php?act=listkh');
-                } else {
-                    header('Location: index.php');
-                }
-            } else {
-                $thongbao = "Tài khoản hoặc mật khẩu sai!";
-                include 'app/views/clients/taikhoan/dangnhap.php';
-            }
-        }
-    }
-    // --- 9. ĐĂNG XUẤT (LOGOUT) ---
-    public function logout()
-    {
-        session_unset();
-        session_destroy();
-        header('Location: index.php');
-    }
+    //             if ($checkuser['role'] == 1) {
+    //                 header('Location: index.php?act=listkh');
+    //             } else {
+    //                 header('Location: index.php');
+    //             }
+    //         } else {
+    //             $thongbao = "Tài khoản hoặc mật khẩu sai!";
+    //             include 'app/views/clients/taikhoan/dangnhap.php';
+    //         }
+    //     }
+    // }
+    // // --- 9. ĐĂNG XUẤT (LOGOUT) ---
+    // public function logout()
+    // {
+    //     session_unset();
+    //     session_destroy();
+    //     header('Location: index.php');
+    // }
 }

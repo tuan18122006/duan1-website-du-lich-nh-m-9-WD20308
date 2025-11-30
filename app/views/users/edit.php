@@ -73,15 +73,6 @@
                         <input type="date" name="birthday" value="<?= $khachhang['birthday'] ?>">
                     </div>
 
-                    <div class="form-group">
-                        <label>Vai trò (*)</label>
-                        <select name="role">
-                            <option value="3" <?= $khachhang['role'] == 3 ? 'selected' : '' ?>>Khách hàng</option>
-                            <option value="2" <?= $khachhang['role'] == 2 ? 'selected' : '' ?>>Nhân viên</option>
-                        </select>
-                    </div>
-                </div>
-
                 <div style="text-align: right;">
                     <button type="submit" name="capnhat" class="btn-submit"> <i class="fas fa-check"></i> Cập nhật</button>
                 </div>
@@ -107,4 +98,3 @@
     </script>
 
 </body>
-

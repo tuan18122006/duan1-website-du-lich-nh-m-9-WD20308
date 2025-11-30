@@ -34,9 +34,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="price">Giá Tour (VND) (*)</label>
-                    <input type="number" name="price" id="price" required
-                        value="<?= htmlspecialchars($price ?? '') ?>">
+                    <label for="base_price">Giá Tour (VND) (*)</label>
+                    <input type="number" name="base_price" id="base_price" required
+                        value="<?= htmlspecialchars($base_price ?? '') ?>">
                 </div>
 
                 <div class="form-group">
@@ -46,15 +46,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="start_location">Điểm Khởi hành</label>
-                    <input type="text" name="start_location" id="start_location"
-                        value="<?= htmlspecialchars($start_location ?? '') ?>">
+                    <label for="start_date">Ngày khởi hành</label>
+                    <input type="date" name="start_date" id="start_date"
+                        value="<?= htmlspecialchars($start_date ?? '') ?>">
                 </div>
 
                 <div class="form-group">
-                    <label for="end_location">Điểm Kết thúc</label>
-                    <input type="text" name="end_location" id="end_location"
-                        value="<?= htmlspecialchars($end_location ?? '') ?>">
+                    <label for="end_date">Điểm Kết thúc</label>
+                    <input type="date" name="end_date" id="end_date"
+                        value="<?= htmlspecialchars($end_date ?? '') ?>">
                 </div>
 
                 <div class="form-group">
@@ -64,10 +64,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="status">Trạng thái</label>
-                    <select name="status" id="status">
-                        <option value="Hoạt động" <?= (($status ?? '') == 'Hoạt động') ? 'selected' : '' ?>>Hoạt động</option>
-                        <option value="Đã kết thúc" <?= (($status ?? '') == 'Đã kết thúc') ? 'selected' : '' ?>>Đã kết thúc</option>
+                    <label for="people">Số lượng khách tối đa</label>
+                    <input type="number" name="people" id="people"
+                        value="<?= htmlspecialchars($people ?? '') ?>">
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Trạng thái (*)</label>
+                    <select name="status" id="status" class="form-control">
+                        <!-- Value là 1: Lưu vào DB là 1 -->
+                        <option value="1" <?= (isset($sticky_data['status']) && $sticky_data['status'] == 1) ? 'selected' : '' ?>>Đang mở</option>
+                        
+                        <!-- Value là 0: Lưu vào DB là 0 -->
+                        <option value="0" <?= (isset($sticky_data['status']) && $sticky_data['status'] == 0) ? 'selected' : '' ?>>Đã đóng</option>
                     </select>
                 </div>
 
