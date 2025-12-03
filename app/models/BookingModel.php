@@ -1,9 +1,8 @@
 <?php
 class BookingModel extends Model {
     
-    // 1. Lấy danh sách (BỎ JOIN customers)
-public function getAllBookings() {
-        // Sử dụng LEFT JOIN để luôn lấy được đơn hàng dù tour có bị xóa hay lỗi
+    // 1. Lấy danh sách booking (đã tối ưu)
+    public function getAllBookings() {
         $sql = "SELECT 
                     b.id,
                     b.customer_name,
@@ -15,14 +14,14 @@ public function getAllBookings() {
                     t.tour_name 
                 FROM bookings b
                 LEFT JOIN tours t ON b.tour_id = t.tour_id
-                ORDER BY b.id DESC"; // Sắp xếp mới nhất lên đầu
+                ORDER BY b.id DESC";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    // 2. Lấy chi tiết (BỎ JOIN customers)
+    // 2. Lấy chi tiết booking
     public function getBookingById($id) {
         $sql = "SELECT b.*, 
                        t.tour_name, t.start_date as tour_start_date, t.end_date as tour_end_date, 
@@ -36,15 +35,14 @@ public function getAllBookings() {
         return $stmt->fetch();
     }
 
-    // ... (Giữ nguyên các hàm createBooking, updateBookingStatus, getBookedSeats...)
-    // Đảm bảo hàm createBooking của bạn đã insert đúng vào các cột customer_name, customer_phone
+    // 3. Tạo booking mới
     public function createBooking($data) {
         $sql = "INSERT INTO bookings (tour_id, customer_name, customer_phone, customer_email, customer_address, people, total_price, start_date, status, note) 
                 VALUES (:tour_id, :customer_name, :customer_phone, :customer_email, :customer_address, :people, :total_price, :start_date, 'Chờ xử lý', :note)";
         return $this->db->prepare($sql)->execute($data);
     }
     
-    // ... (Các hàm khác giữ nguyên)
+    // 4. Lấy số chỗ đã đặt
     public function getBookedSeats($tour_id) {
         $sql = "SELECT SUM(people) as total_booked FROM bookings WHERE tour_id = :tour_id AND status != 'Đã hủy'";
         $stmt = $this->db->prepare($sql);
@@ -53,33 +51,49 @@ public function getAllBookings() {
         return $result['total_booked'] ?? 0;
     }
 
-    public function updateBookingStatus($id, $status) {
-        $sql = "UPDATE bookings SET status = :status WHERE id = :id";
-        return $this->db->prepare($sql)->execute([':status' => $status, ':id' => $id]);
+    // 5. Cập nhật trạng thái tất cả booking của 1 tour (Dùng khi kích hoạt/kết thúc tour)
+    public function updateAllBookingsStatus($tour_id, $status) {
+        $sql = "UPDATE bookings 
+                SET status = :status 
+                WHERE tour_id = :tour_id AND status != 'Đã hủy'";
+        
+        return $this->db->prepare($sql)->execute([
+            ':status' => $status, 
+            ':tour_id' => $tour_id
+        ]);
     }
 
+    // 6. Cập nhật HDV cho Tour
     public function updateTourGuide($tour_id, $guide_id) {
         $sql = "UPDATE tours SET guide_id = :guide_id WHERE tour_id = :tour_id";
         return $this->db->prepare($sql)->execute([':guide_id' => $guide_id, ':tour_id' => $tour_id]);
     }
 
+    // 7. Lưu đánh giá
     public function saveFeedback($data) {
-        $sql = "INSERT INTO guide_feedbacks (booking_id, guide_id, content) VALUES (:booking_id, :guide_id, :content)";
+        $sql = "INSERT INTO guide_feedbacks (booking_id, guide_id, user_id, content) 
+                VALUES (:booking_id, :guide_id, :user_id, :content)";
         return $this->db->prepare($sql)->execute($data);
     }
-    // FILE: app/models/BookingModel.php
 
-// Lấy danh sách booking theo ID tour cụ thể
-public function getBookingsByTourId($tour_id) {
-    $sql = "SELECT b.*, t.tour_name 
-            FROM bookings b
-            JOIN tours t ON b.tour_id = t.tour_id
-            WHERE b.tour_id = :tour_id
-            ORDER BY b.created_at DESC";
-    
-    $stmt = $this->db->prepare($sql);
-    $stmt->execute([':tour_id' => $tour_id]);
-    return $stmt->fetchAll();
-}
+    // 8. Lấy booking theo Tour ID
+    public function getBookingsByTourId($tour_id) {
+        $sql = "SELECT b.*, t.tour_name 
+                FROM bookings b
+                JOIN tours t ON b.tour_id = t.tour_id
+                WHERE b.tour_id = :tour_id
+                ORDER BY b.created_at DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':tour_id' => $tour_id]);
+        return $stmt->fetchAll();
+    }
 
+    // --- QUAN TRỌNG: HÀM NÀY BỊ THIẾU TRƯỚC ĐÓ ---
+    // 9. Cập nhật trạng thái Booking lẻ (Xác nhận/Hủy/Hoàn thành)
+    public function updateBookingStatus($id, $status) {
+        $sql = "UPDATE bookings SET status = :status WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':status' => $status, ':id' => $id]);
+    }
 }

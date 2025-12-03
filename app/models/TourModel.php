@@ -173,4 +173,54 @@ class TourModel extends Model
         $sql = "UPDATE tours SET status = :status WHERE tour_id = :tour_id";
         return $this->db->prepare($sql)->execute([':status' => $status, ':tour_id' => $tour_id]);
     }
+
+// THÊM: Lấy danh sách Tour lịch sử (Đã xong hoặc Đã hủy)
+public function getHistoryTours() {
+    $sql = "SELECT 
+                t.*, 
+                c.category_name 
+            FROM tours t
+            LEFT JOIN tour_categories c ON t.category_id = c.category_id
+            WHERE t.status IN (0, 3) -- 0: Hủy, 3: Hoàn thành
+            ORDER BY t.end_date DESC";
+    
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll();
+// --- PHẦN MỚI: QUẢN LÝ LỊCH TOUR ---
+}
+    // 1. Lấy danh sách lịch của 1 tour
+    public function getSchedules($tour_id) {
+        $sql = "SELECT * FROM tour_schedules WHERE tour_id = :tour_id ORDER BY start_date ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':tour_id' => $tour_id]);
+        return $stmt->fetchAll();
+    }
+
+    // 2. Thêm lịch mới
+    public function addSchedule($data) {
+        $sql = "INSERT INTO tour_schedules (tour_id, start_date, end_date, price, stock) 
+                VALUES (:tour_id, :start_date, :end_date, :price, :stock)";
+        return $this->db->prepare($sql)->execute($data);
+    }
+
+    // 3. Xóa lịch
+    public function deleteSchedule($id) {
+        $sql = "DELETE FROM tour_schedules WHERE schedule_id = :id";
+        return $this->db->prepare($sql)->execute([':id' => $id]);
+    }
+
+    // 4. Lấy thông tin 1 lịch cụ thể (để booking dùng)
+    public function getScheduleById($id) {
+        $sql = "SELECT * FROM tour_schedules WHERE schedule_id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch();
+    }
+
+    // 5. Cập nhật số lượng đã đặt trong bảng schedules
+    public function updateScheduleBooked($schedule_id, $people) {
+        $sql = "UPDATE tour_schedules SET booked = booked + :people WHERE schedule_id = :schedule_id";
+        return $this->db->prepare($sql)->execute([':people' => $people, ':schedule_id' => $schedule_id]);
+    }
 }

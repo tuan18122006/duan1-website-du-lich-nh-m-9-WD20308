@@ -260,17 +260,22 @@ class TourController extends Controller
         $page_css = "assets/css/tour.css";
         require_once './app/views/layouts/main.php';
     }
+public function tourHistory() {
+    $history_list = $this->tourModel->getHistoryTours();
     
+    $view_path = './app/views/tours/history.php';
+    $page_title = "Lịch sử Tour";
+    require_once './app/views/layouts/main.php';
+}
 public function tourBookings() {
     $id = $_GET['id'] ?? 0;
     
     // 1. Lấy thông tin Tour
     $tour = $this->tourModel->getTourById($id);
     
-    // 2. Lấy danh sách khách đã đặt của Tour này
-    // Lưu ý: Cần khởi tạo BookingModel trong __construct nếu chưa có
-    // $this->bookingModel = $this->model('BookingModel');
-    $bookings = $this->model('BookingModel')->getBookingsByTourId($id);
+    // 2. Load Model Booking
+    $bookingModel = $this->model('BookingModel'); // Khởi tạo model
+    $bookings = $bookingModel->getBookingsByTourId($id);
 
     // 3. Tính toán số lượng khách
     $current_people = 0;
@@ -280,15 +285,77 @@ public function tourBookings() {
         }
     }
     
-    // 4. Xử lý kích hoạt Tour (Nếu Admin bấm nút kích hoạt tại đây)
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['activate_tour'])) {
-        $this->tourModel->updateTourStatus($id, 2); // 2 = Hoạt động
-        $_SESSION['success'] = "Đã kích hoạt tour thành công!";
-        header("Location: index.php?act=tour_bookings&id=$id");
-        exit;
+    // --- XỬ LÝ POST: KÍCH HOẠT & KẾT THÚC ---
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        
+        // A. KÍCH HOẠT TOUR (Chuyển Tour -> Hoạt động, Booking -> Đã xác nhận)
+        if (isset($_POST['activate_tour'])) {
+            // 1. Cập nhật Tour status = 2 (Đang hoạt động)
+            $this->tourModel->updateTourStatus($id, 2);
+            
+            // 2. Cập nhật TOÀN BỘ Booking -> 'Đã xác nhận'
+            $bookingModel->updateAllBookingsStatus($id, 'Đã xác nhận');
+
+            $_SESSION['success'] = "Đã kích hoạt Tour và Xác nhận toàn bộ khách!";
+            header("Location: index.php?act=tour_bookings&id=$id");
+            exit;
+        }
+
+        // B. KẾT THÚC TOUR (Chuyển Tour -> Hoàn thành, Booking -> Hoàn thành)
+        if (isset($_POST['finish_tour'])) {
+            // 1. Cập nhật Tour status = 3 (Hoàn thành/Lịch sử)
+            $this->tourModel->updateTourStatus($id, 3);
+            
+            // 2. Cập nhật TOÀN BỘ Booking -> 'Hoàn thành'
+            $bookingModel->updateAllBookingsStatus($id, 'Hoàn thành');
+
+            $_SESSION['success'] = "Tour đã kết thúc! Hệ thống đã mở chức năng đánh giá.";
+            header("Location: index.php?act=tour_bookings&id=$id");
+            exit;
+        }
     }
 
     $view_path = './app/views/tours/tour_bookings.php';
     require_once './app/views/layouts/main.php';
 }
+public function manageSchedules() {
+        $tour_id = $_GET['id'] ?? 0;
+        $tour = $this->tourModel->getTourById($tour_id);
+        
+        if (!$tour) {
+            $_SESSION['error'] = "Không tìm thấy Tour!";
+            header("Location: index.php?act=tour_list");
+            exit;
+        }
+
+        // Xử lý thêm lịch mới
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_schedule'])) {
+            $data = [
+                ':tour_id' => $tour_id,
+                ':start_date' => $_POST['start_date'],
+                ':end_date' => $_POST['end_date'],
+                ':price' => $_POST['price'],
+                ':stock' => $_POST['stock']
+            ];
+            $this->tourModel->addSchedule($data);
+            $_SESSION['success'] = "Đã thêm lịch khởi hành!";
+            header("Location: index.php?act=tour_schedules&id=$tour_id");
+            exit;
+        }
+
+        // Xử lý xóa lịch
+        if (isset($_GET['delete_id'])) {
+            $this->tourModel->deleteSchedule($_GET['delete_id']);
+            $_SESSION['success'] = "Đã xóa lịch!";
+            header("Location: index.php?act=tour_schedules&id=$tour_id");
+            exit;
+        }
+
+        // Lấy danh sách lịch hiện có
+        $schedules = $this->tourModel->getSchedules($tour_id);
+
+        $view_path = './app/views/tours/manage_schedules.php';
+        $page_title = "Quản lý lịch khởi hành";
+        require_once './app/views/layouts/main.php';
+    }
 }

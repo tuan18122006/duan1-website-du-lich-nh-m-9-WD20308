@@ -1,4 +1,3 @@
-
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -21,75 +20,77 @@
                         <tr>
                             <th class="ps-4 py-3">ID</th>
                             <th class="py-3">Khách hàng</th>
-                            <th class="py-3">Tour đăng ký</th>
-                            <th class="py-3">Ngày đi</th>
-                            <th class="py-3 text-center">Số người</th>
+                            <th class="py-3">Tour / Ngày đi</th>
+                            <th class="py-3 text-center">Vé</th>
                             <th class="py-3">Tổng tiền</th>
                             <th class="py-3">Trạng thái</th>
+                            <th class="py-3 text-end pe-4">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($bookings)): ?>
-                            <?php foreach ($bookings as $item): ?>
-                                <tr>
-                                    <td class="ps-4 fw-bold text-secondary">#<?= $item['id'] ?></td>
-                                    
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-circle bg-light text-primary me-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold text-dark"><?= htmlspecialchars($item['customer_name'] ?? 'Khách vãng lai') ?></div>
-                                                <small class="text-muted">
-                                                    <i class="fas fa-phone-alt me-1" style="font-size: 10px;"></i>
-                                                    <?= htmlspecialchars($item['customer_phone'] ?? '---') ?>
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td style="max-width: 250px;">
-                                        <div class="text-truncate fw-medium" title="<?= htmlspecialchars($item['tour_name'] ?? '') ?>">
-                                            <?= htmlspecialchars($item['tour_name'] ?? 'Tour đã bị xóa') ?>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <?= isset($item['start_date']) ? date('d/m/Y', strtotime($item['start_date'])) : '---' ?>
-                                    </td>
-
-                                    <td class="text-center">
-                                        <span class="badge bg-light text-dark border"><?= $item['people'] ?> khách</span>
-                                    </td>
-
-                                    <td class="fw-bold text-danger">
-                                        <?= number_format($item['total_price']) ?> đ
-                                    </td>
-
-                                    <td>
-                                        <?php 
-                                            $status = $item['status'] ?? 'Chờ xử lý';
-                                            $badgeClass = 'bg-secondary';
-                                            
-                                            // Dùng match hoặc if/else đều được
-                                            if ($status == 'Chờ xử lý') $badgeClass = 'bg-warning text-dark';
-                                            elseif ($status == 'Đã xác nhận') $badgeClass = 'bg-primary';
-                                            elseif ($status == 'Hoàn thành') $badgeClass = 'bg-success';
-                                            elseif ($status == 'Đã hủy') $badgeClass = 'bg-danger';
-                                        ?>
-                                        <span class="badge <?= $badgeClass ?> rounded-pill py-2 px-3"><?= $status ?></span>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
+                    <?php if (!empty($bookings)): ?>
+                        <?php foreach ($bookings as $item): ?>
                             <tr>
-                                <td colspan="8" class="text-center py-5">
-                                    <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" width="80" alt="No data" class="mb-3 opacity-50">
-                                    <p class="text-muted fw-bold">Chưa có đơn đặt tour nào.</p>
+                                <td class="ps-4 fw-bold text-secondary">#<?= $item['id'] ?></td>
+                                
+                                <td>
+                                    <div class="fw-bold text-dark"><?= htmlspecialchars($item['customer_name']) ?></div>
+                                    <small class="text-muted"><?= htmlspecialchars($item['customer_phone']) ?></small>
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold text-primary" style="font-size: 0.9rem;">
+                                        <?= htmlspecialchars($item['tour_name'] ?? 'Tour đã xóa') ?>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="far fa-calendar-alt"></i> 
+                                        <?= isset($item['start_date']) ? date('d/m/Y', strtotime($item['start_date'])) : '---' ?>
+                                    </small>
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border"><?= $item['people'] ?></span>
+                                </td>
+
+                                <td class="fw-bold text-danger">
+                                    <?= number_format($item['total_price']) ?> đ
+                                </td>
+
+                                <td>
+                                    <?php 
+                                        $status = $item['status'] ?? 'Chờ xử lý';
+                                        $badgeClass = match($status) {
+                                            'Chờ xử lý' => 'bg-warning text-dark',
+                                            'Đã xác nhận' => 'bg-info text-dark',
+                                            'Hoàn thành' => 'bg-success',
+                                            'Đã hủy' => 'bg-danger',
+                                            default => 'bg-secondary'
+                                        };
+                                    ?>
+                                    <span class="badge <?= $badgeClass ?>"><?= $status ?></span>
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <?php if ($status != 'Hoàn thành' && $status != 'Đã hủy'): ?>
+                                        <form method="POST" action="index.php?act=booking_detail&id=<?= $item['id'] ?>" class="d-inline-block" onsubmit="return confirm('Xác nhận khách đã thanh toán xong? Trạng thái sẽ chuyển thành Hoàn thành.');">
+                                            <input type="hidden" name="action" value="mark_completed">
+                                            <button type="submit" class="btn btn-sm btn-success shadow-sm" title="Xác nhận đã giao dịch">
+                                                <i class="fas fa-check-circle"></i> XN Giao dịch
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+
+                                    <a href="index.php?act=booking_detail&id=<?= $item['id'] ?>" 
+                                       class="btn btn-outline-primary btn-sm ms-1" 
+                                       title="Xem chi tiết">
+                                       <i class="fas fa-eye"></i>
+                                    </a>
                                 </td>
                             </tr>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="7" class="text-center py-4">Chưa có dữ liệu.</td></tr>
+                    <?php endif; ?>
                     </tbody>
                 </table>
             </div>

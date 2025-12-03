@@ -113,11 +113,17 @@ switch ($act) {
     case 'detail_tour':
         (new TourController())->detailTour();
         break;
-case 'tour_bookings':
-        (new TourController())->tourBookings();
+    case 'tour_bookings':
+            (new TourController())->tourBookings();
+            break;
+    case 'tour_history':
+            (new TourController())->tourHistory();
+            break;
+    case 'tour_schedules':
+        $tourController = new TourController();
+        $tourController->manageSchedules();
         break;
-
-
+        
             // === QUẢN LÝ HDV ===
     case 'list_guide':
         (new GuideController())->index();

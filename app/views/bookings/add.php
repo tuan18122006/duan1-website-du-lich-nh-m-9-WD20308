@@ -7,7 +7,7 @@
             <form method="POST" action="index.php?act=booking_add">
                 
                 <div class="row">
-                    <div class="col-md-6 border-end">
+                    <div class="col-md-5 border-end">
                         <h5 class="text-primary mb-3">1. Thông tin khách hàng</h5>
                         
                         <div class="mb-3">
@@ -31,18 +31,44 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6 ps-md-4">
-                        <h5 class="text-primary mb-3">2. Thông tin Tour</h5>
+                    <div class="col-md-7 ps-md-4">
+                        <h5 class="text-primary mb-3">2. Chọn Tour & Lịch trình</h5>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Chọn Tour (*)</label>
-                            <select name="tour_id" class="form-select" required onchange="updatePrice(this)">
-                                <option value="" data-price="0">-- Chọn Tour du lịch --</option>
+                            <select name="tour_id" id="tourSelect" class="form-select" required onchange="loadSchedules(this.value)">
+                                <option value="">-- Chọn Tour du lịch --</option>
                                 <?php foreach($tours as $t): ?>
-                                    <option value="<?= $t['tour_id'] ?>" data-price="<?= $t['base_price'] ?>">
+                                    <option value="<?= $t['tour_id'] ?>">
                                         <?= htmlspecialchars($t['tour_name']) ?>
                                     </option>
                                 <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div id="scheduleTableContainer" class="mb-3" style="display:none;">
+                            <label class="form-label fw-bold text-success">Lịch trình hiện có:</label>
+                            <div class="table-responsive border rounded bg-light p-2" style="max-height: 200px; overflow-y: auto;">
+                                <table class="table table-sm table-hover mb-0" style="font-size: 0.9rem;">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Ngày đi</th>
+                                            <th>Ngày về</th>
+                                            <th>Giá vé</th>
+                                            <th>Còn lại</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scheduleTableBody">
+                                        </tbody>
+                                </table>
+                            </div>
+                            <small class="text-muted fst-italic">* Tham khảo bảng trên và chọn ngày bên dưới</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn Ngày Khởi Hành (*)</label>
+                            <select name="schedule_id" id="scheduleSelect" class="form-select" required onchange="updatePriceFromSchedule()">
+                                <option value="" data-price="0">-- Vui lòng chọn Tour trước --</option>
                             </select>
                         </div>
 
@@ -59,16 +85,16 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Ghi chú thêm</label>
-                            <textarea name="note" class="form-control" rows="3"></textarea>
+                            <textarea name="note" class="form-control" rows="2"></textarea>
                         </div>
 
-                        <div class="alert alert-info fw-bold text-center">
+                        <div class="alert alert-info fw-bold text-center py-2">
                             TỔNG TIỀN: <span id="totalDisplay" class="text-danger fs-4">0</span> VNĐ
                         </div>
 
                         <div class="text-end">
                             <a href="index.php?act=booking_list" class="btn btn-secondary me-2">Hủy bỏ</a>
-                            <button type="submit" class="btn btn-success px-4 fw-bold">Xác nhận đặt Tour</button>
+                            <button type="submit" class="btn btn-success px-4 fw-bold">Xác nhận đặt</button>
                         </div>
                     </div>
                 </div>
@@ -78,16 +104,83 @@
 </div>
 
 <script>
-    function updatePrice(selectElement) {
-        var price = selectElement.options[selectElement.selectedIndex].getAttribute('data-price');
-        document.getElementById('tourPrice').value = price;
+    // 1. Hàm gọi API lấy danh sách lịch khi chọn Tour
+    function loadSchedules(tourId) {
+        const scheduleContainer = document.getElementById('scheduleTableContainer');
+        const tableBody = document.getElementById('scheduleTableBody');
+        const selectBox = document.getElementById('scheduleSelect');
+        const priceInput = document.getElementById('tourPrice');
+
+        if(!tourId) {
+            selectBox.innerHTML = '<option value="" data-price="0">-- Vui lòng chọn Tour trước --</option>';
+            scheduleContainer.style.display = 'none';
+            priceInput.value = 0;
+            calculateTotal();
+            return;
+        }
+        
+        selectBox.innerHTML = '<option>Đang tải dữ liệu...</option>';
+
+        // Gọi AJAX
+        fetch('index.php?act=booking_add&ajax_tour_id=' + tourId)
+            .then(response => response.json())
+            .then(data => {
+                let optionsHtml = '<option value="" data-price="0">-- Chọn ngày đi --</option>';
+                let tableHtml = '';
+                
+                if (data.length > 0) {
+                    scheduleContainer.style.display = 'block'; // Hiện bảng
+
+                    data.forEach(item => {
+                        let remaining = item.stock - item.booked;
+                        let dateStart = new Date(item.start_date).toLocaleDateString('vi-VN');
+                        let dateEnd = new Date(item.end_date).toLocaleDateString('vi-VN');
+                        let priceFmt = new Intl.NumberFormat('vi-VN').format(item.price);
+
+                        // 1. Tạo dòng trong bảng hiển thị
+                        tableHtml += `
+                            <tr>
+                                <td class="fw-bold text-primary">${dateStart}</td>
+                                <td>${dateEnd}</td>
+                                <td class="text-danger">${priceFmt} đ</td>
+                                <td>${remaining} / ${item.stock}</td>
+                            </tr>
+                        `;
+
+                        // 2. Tạo option trong dropdown
+                        optionsHtml += `<option value="${item.schedule_id}" data-price="${item.price}">
+                                    Ngày ${dateStart} - Giá: ${priceFmt} đ (Còn ${remaining} chỗ)
+                                 </option>`;
+                    });
+                } else {
+                    scheduleContainer.style.display = 'none'; // Ẩn bảng nếu không có lịch
+                    optionsHtml = '<option value="" data-price="0">-- Tour này chưa có lịch --</option>';
+                }
+
+                tableBody.innerHTML = tableHtml;
+                selectBox.innerHTML = optionsHtml;
+                priceInput.value = 0;
+                calculateTotal();
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                selectBox.innerHTML = '<option>Lỗi tải dữ liệu</option>';
+            });
+    }
+
+    // 2. Cập nhật giá khi chọn dropdown
+    function updatePriceFromSchedule() {
+        let select = document.getElementById('scheduleSelect');
+        let price = select.options[select.selectedIndex].getAttribute('data-price');
+        document.getElementById('tourPrice').value = price ? price : 0;
         calculateTotal();
     }
 
+    // 3. Tính tổng tiền
     function calculateTotal() {
-        var price = document.getElementById('tourPrice').value;
-        var people = document.getElementById('peopleInput').value;
-        var total = price * people;
+        let price = parseInt(document.getElementById('tourPrice').value) || 0;
+        let people = parseInt(document.getElementById('peopleInput').value) || 1;
+        let total = price * people;
         document.getElementById('totalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(total);
     }
 </script>

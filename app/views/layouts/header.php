@@ -228,6 +228,7 @@
         $ariaExpanded = in_array($act, $userActs) ? 'true' : 'false';
         ?>
 
+
         <ul class="nav flex-column">
             <!-- Dashboard -->
             <li class="nav-item">
@@ -269,9 +270,15 @@
                     <i class="bi bi-receipt me-2"></i> Quản lí Booking
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="index.php?act=tour_history">
+                    <i class="fas fa-history"></i> Lịch sử Tour
+                </a>
+            </li>
             <li class="nav-item mt-3 px-3">
                 <hr class="text-secondary opacity-25">
             </li>
+
         </ul>
     </nav>
 
