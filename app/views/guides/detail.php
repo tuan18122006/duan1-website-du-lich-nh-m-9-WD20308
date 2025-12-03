@@ -2,7 +2,7 @@
     <div class="breadcrumb">
         <a href="index.php?act=list_guide"><i class="fas fa-arrow-left"></i> Danh sách HDV</a> / Chi tiết
     </div>
-    
+
     <div class="profile-card">
         <div class="profile-sidebar">
             <?php
@@ -57,4 +57,30 @@
             </div>
         </div>
     </div>
+
+    <h2>Tour được phân công</h2>
+
+    <?php if (empty($tours)): ?>
+        <p>Chưa được phân công tour nào.</p>
+    <?php else: ?>
+        <table border="1">
+            <tr>
+                <th>ID</th>
+                <th>Tên tour</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th>Trạng thái</th>
+            </tr>
+
+            <?php foreach ($tours as $tour): ?>
+                <tr>
+                    <td><?= $tour['tour_id'] ?></td>
+                    <td><?= $tour['tour_name'] ?></td>
+                    <td><?= $tour['start_date'] ?></td>
+                    <td><?= $tour['end_date'] ?></td>
+                    <td><?= $tour['status'] ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+    <?php endif; ?>
 </body>

@@ -11,7 +11,7 @@ class TourModel extends Model
                 FROM tours t
                 LEFT JOIN tour_categories c ON t.category_id = c.category_id
                 ORDER BY t.tour_id DESC";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -27,7 +27,7 @@ class TourModel extends Model
                 LEFT JOIN tour_categories c ON t.category_id = c.category_id
                 WHERE t.category_id = :category_id
                 ORDER BY t.tour_id DESC";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':category_id' => $category_id]);
         return $stmt->fetchAll();
@@ -91,7 +91,8 @@ class TourModel extends Model
     }
 
     // 7. Cập nhật Tour (Đã cập nhật thêm guide_id theo DB mới)
-    public function updateTour($data) {
+    public function updateTour($data)
+    {
         // Sử dụng tên cột chính xác theo Database bạn đã tạo
         $sql = "UPDATE tours SET 
                 category_id = :category_id,
@@ -109,9 +110,9 @@ class TourModel extends Model
                 people = :people,
                 guide_id = :guide_id
                 WHERE tour_id = :tour_id";
-                
+
         $stmt = $this->db->prepare($sql);
-        
+
         return $stmt->execute([
             ':category_id' => $data['category_id'],
             ':tour_name' => $data['tour_name'],
@@ -132,14 +133,16 @@ class TourModel extends Model
     }
 
     // 8. Lấy danh sách Hướng dẫn viên
-    public function getAllGuides() {
+    public function getAllGuides()
+    {
         $sql = "SELECT * FROM guides ORDER BY guide_id DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
     }
-    public function getToursWithBookingStatus() {
-    $sql = "SELECT 
+    public function getToursWithBookingStatus()
+    {
+        $sql = "SELECT 
                 t.*,
                 t.people as max_people,
                 IFNULL(SUM(b.people), 0) as current_people,
@@ -148,14 +151,26 @@ class TourModel extends Model
             LEFT JOIN bookings b ON t.tour_id = b.tour_id AND b.status != 'Đã hủy'
             GROUP BY t.tour_id
             ORDER BY t.start_date DESC";
-            
-    return $this->db->prepare($sql)->fetchAll();
-}
 
-// Hàm cập nhật trạng thái hoạt động của Tour (Kích hoạt/Hủy)
-public function updateTourStatus($tour_id, $status) {
-    // status: 1=Đang nhận khách, 2=Đã đủ người/Hoạt động, 3=Đã xong, 0=Hủy
-    $sql = "UPDATE tours SET status = :status WHERE tour_id = :tour_id";
-    return $this->db->prepare($sql)->execute([':status' => $status, ':tour_id' => $tour_id]);
-}
+        return $this->db->prepare($sql)->fetchAll();
+    }
+
+    public function getToursByGuide($guide_id)
+    {
+        $sql = "SELECT * FROM tours WHERE guide_id = :guide_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['guide_id' => $guide_id]);
+        return $stmt->fetchAll();
+    }
+
+
+
+
+    // Hàm cập nhật trạng thái hoạt động của Tour (Kích hoạt/Hủy)
+    public function updateTourStatus($tour_id, $status)
+    {
+        // status: 1=Đang nhận khách, 2=Đã đủ người/Hoạt động, 3=Đã xong, 0=Hủy
+        $sql = "UPDATE tours SET status = :status WHERE tour_id = :tour_id";
+        return $this->db->prepare($sql)->execute([':status' => $status, ':tour_id' => $tour_id]);
+    }
 }

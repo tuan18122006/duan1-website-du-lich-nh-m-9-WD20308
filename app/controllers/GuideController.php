@@ -2,10 +2,12 @@
 class GuideController extends Controller {
     private $guideModel;
     private $userModel;
+    public $tourModel;
 
     public function __construct() {
         $this->guideModel = $this->model('GuideModel');
         $this->userModel = $this->model('UserModel'); // Dùng để check user trùng và delete
+        $this->tourModel = new TourModel();
     }
 
     // 1. LIST
@@ -121,6 +123,7 @@ class GuideController extends Controller {
     public function detail() {
         $id = $_GET['id'] ?? 0;
         $guide = $this->guideModel->getGuideById($id);
+        $tours = $this->tourModel->getToursByGuide($id);
         if ($guide) {
             $page_css = "assets/css/user.css";
             $view_path = "app/views/guides/detail.php";
