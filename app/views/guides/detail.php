@@ -78,7 +78,7 @@
                     <td><?= $tour['tour_name'] ?></td>
                     <td><?= $tour['start_date'] ?></td>
                     <td><?= $tour['end_date'] ?></td>
-                    <td><?= $tour['status'] ?></td>
+                    <td><?= $tour['status'] == 0 ? 'Đang diễn ra' : 'Chưa khởi hành' ?></td>
                 </tr>
             <?php endforeach; ?>
         </table>
