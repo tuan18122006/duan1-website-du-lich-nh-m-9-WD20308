@@ -1,4 +1,4 @@
-/* --- GIỮ NGUYÊN PHẦN CÀI ĐẶT CHUNG Ở TRÊN --- */
+/* --- CÀI ĐẶT CHUNG --- */
 * {
     margin: 0;
     padding: 0;
@@ -12,6 +12,7 @@ body {
     align-items: center;
     min-height: 100vh;
     overflow: hidden;
+    background: #f0f0f0;
 }
 
 .bg-image {
@@ -26,128 +27,48 @@ body {
 }
 
 .wrapper {
-    overflow: hidden;
-    max-width: 390px;
-    background: rgba(255, 255, 255, 0.15);
+    max-width: 400px;
+    width: 100%;
     padding: 30px;
     border-radius: 15px;
-    box-shadow: 0px 15px 20px rgba(0,0,0,0.2);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
+    box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    width: 100%;
+    overflow: hidden;
 }
 
-.wrapper .title-text {
-    display: flex;
-    width: 200%;
-}
-
-.wrapper .title {
-    width: 50%;
-    font-size: 30px;
-    font-weight: 600;
+.title-text {
     text-align: center;
-    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    font-size: 28px;
+    font-weight: 600;
     color: #fff;
     text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-/* Ẩn radio button đi */
-.wrapper input[type="radio"] {
-    display: none;
+    margin-bottom: 30px;
 }
 
 /* Form Container */
 .form-container {
     width: 100%;
-    overflow: hidden;
-}
-
-/* Slide Controls */
-.slide-controls {
-    position: relative;
-    display: flex;
-    height: 50px;
-    width: 100%;
-    overflow: hidden;
-    margin: 30px 0 10px 0;
-    justify-content: space-between;
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 25px;
-}
-
-.slide-controls .slide {
-    height: 100%;
-    width: 100%;
-    color: #fff;
-    font-size: 18px;
-    font-weight: 500;
-    text-align: center;
-    line-height: 48px;
-    cursor: pointer;
-    z-index: 1;
-    transition: all 0.6s ease;
-}
-
-.slide-controls .slider-tab {
-    position: absolute;
-    height: 100%;
-    width: 50%;
-    left: 0;
-    z-index: 0;
-    border-radius: 25px;
-    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-#signup:checked ~ .form-container .slide-controls .slider-tab {
-    left: 50%;
-}
-
-#signup:checked ~ .form-container .form-inner {
-    margin-left: -100%;
-}
-
-#signup:checked ~ .form-container .slide-controls label.signup {
-    color: #fff;
-    cursor: default;
-}
-#signup:checked ~ .form-container .slide-controls label.login {
-    color: #fff;
-}
-#login:checked ~ .form-container .slide-controls label.signup {
-    color: #fff;
-}
-#login:checked ~ .form-container .slide-controls label.login {
-    cursor: default;
-}
-
-#login:checked ~ .title-text .login {
-    margin-left: 02%;
-}
-#signup:checked ~ .title-text .login {
-    margin-left: -51%;
 }
 
 .form-inner {
-    display: flex;
-    width: 200%;
+    width: 100%;
 }
 
-.form-inner form {
-    width: 50%;
-    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+form.login {
+    width: 100%;
 }
 
-.form-inner form .field {
+form.login .field {
     height: 50px;
     width: 100%;
     margin-top: 20px;
 }
 
-.form-inner form .field input {
-    height: 100%;
+form.login .field input {
     width: 100%;
+    height: 100%;
     outline: none;
     padding-left: 15px;
     border-radius: 25px;
@@ -157,68 +78,57 @@ body {
     transition: all 0.3s ease;
 }
 
-.form-inner form .field input:focus {
+form.login .field input:focus {
     border-color: #00d2ff;
     background: #fff;
 }
 
-.form-inner form .pass-link {
-    margin-top: 5px;
-}
-
-.form-inner form .signup-link {
-    text-align: center;
-    margin-top: 20px;
-    color: #fff;
-}
-
-.form-inner form .pass-link a,
-.form-inner form .signup-link label {
-    color: #00d2ff;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.form-inner form .pass-link a:hover,
-.form-inner form .signup-link label:hover {
-    text-decoration: underline;
-    color: #fff;
-    cursor: pointer;
-}
-
-.form-inner form .field.btn {
+form.login .field.btn {
+    margin-top: 25px;
     height: 50px;
-    width: 100%;
     border-radius: 25px;
     position: relative;
     overflow: hidden;
 }
 
-.form-inner form .field.btn .btn-layer {
+form.login .field.btn input[type="submit"] {
+    width: 100%;
     height: 100%;
-    width: 300%;
-    position: absolute;
-    left: -100%;
-    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%, #00d2ff 200%);
+    border: 2px solid #007BFF;
+    background-color: #007BFF;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
     border-radius: 25px;
-    transition: all 0.4s ease;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-.form-inner form .field.btn input[type="submit"] {
-    height: 100%;
-    width: 100%;
-    z-index: 1;
-    position: relative;
-    background: none;
-    border: none;
-    color: #fff;
-    padding-left: 0;
-    border-radius: 25px;
-    font-size: 20px;
+form.login .field.btn input[type="submit"]:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Link quên mật khẩu / lỗi */
+form.login .pass-link {
+    margin-top: 10px;
+    text-align: right;
+}
+
+form.login .pass-link a {
+    color: #00d2ff;
+    text-decoration: none;
     font-weight: 500;
+}
+
+form.login .pass-link a:hover {
+    text-decoration: underline;
+    color: #fff;
     cursor: pointer;
 }
 
-.form-inner form .field.btn:hover .btn-layer {
-    left: 0;
+form.login p.error {
+    color: red;
+    margin-top: 10px;
+    text-align: center;
 }

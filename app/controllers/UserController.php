@@ -97,8 +97,9 @@ class UserController extends Controller
             $full_name = $_POST['full_name'];
             $email = $_POST['email'];
             $phone = $_POST['phone'];
-            $birthday = $_POST['birthday'];
-            $role = $_POST['role'];
+            $birthday = !empty($_POST['birthday']) ? $_POST['birthday'] : null;
+            $role = $_POST['role'] ?? null;
+
 
             // Lấy ảnh cũ mặc định
             $avatar = $_POST['old_avatar'] ?? "";
@@ -156,39 +157,4 @@ class UserController extends Controller
         }
     }
 
-    // --- 8. ĐĂNG NHẬP (LOGIN) ---
-    // public function login()
-    // {
-    //     include 'app/views/clients/taikhoan/dangnhap.php';
-    // }
-
-    // public function handleLogin()
-    // {
-    //     if (isset($_POST['dangnhap'])) {
-    //         $user = $_POST['user'];
-    //         $pass = $_POST['pass'];
-    //         $checkuser = $this->userModel->checkUser($user, $pass);
-
-    //         if (is_array($checkuser)) {
-    //             $_SESSION['user'] = $checkuser;
-    //             $_SESSION['success'] = "Đăng nhập thành công!";
-
-    //             if ($checkuser['role'] == 1) {
-    //                 header('Location: index.php?act=listkh');
-    //             } else {
-    //                 header('Location: index.php');
-    //             }
-    //         } else {
-    //             $thongbao = "Tài khoản hoặc mật khẩu sai!";
-    //             include 'app/views/clients/taikhoan/dangnhap.php';
-    //         }
-    //     }
-    // }
-    // // --- 9. ĐĂNG XUẤT (LOGOUT) ---
-    // public function logout()
-    // {
-    //     session_unset();
-    //     session_destroy();
-    //     header('Location: index.php');
-    // }
 }
