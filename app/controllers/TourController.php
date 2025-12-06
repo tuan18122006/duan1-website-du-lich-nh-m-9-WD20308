@@ -31,7 +31,7 @@ class TourController extends Controller
         $data = [
             'tour_list' => $tour_list,
             'category_filter' => $filter_value,
-            'categories' => $categories 
+            'categories' => $categories
         ];
 
         // --- SỬA LẠI ĐOẠN NÀY ---
@@ -42,7 +42,7 @@ class TourController extends Controller
         $view_path = './app/views/tours/tour_list.php';
         $page_css = "assets/css/tour.css";
         $page_title = "Danh sách Tour";
-        
+
         // 3. Gọi Layout chính (Layout sẽ tự include view_path vào giữa)
         require_once "./app/views/layouts/main.php";
     }
@@ -51,9 +51,8 @@ class TourController extends Controller
     public function addTour()
     {
         $categories = $this->tourModel->getAllCategories() ?? [];
-        
-        // Lấy danh sách HDV (Để không bị lỗi undefined variable khi view load)
-        $guides = $this->tourModel->getAllGuides(); 
+
+        $guides = $this->tourModel->getAllGuides();
 
         $sticky_data = [];
         $error_occurred = false;
@@ -140,7 +139,7 @@ class TourController extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $image_name = $tour['image_url'];
             $upload_dir = 'assets/uploads/tours/';
-            
+
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $safeName = str_replace(' ', '_', $_FILES['image']['name']);
                 $newImg = time() . '_' . $safeName;
@@ -171,11 +170,11 @@ class TourController extends Controller
             if ($this->tourModel->updateTour($data)) {
                 $_SESSION['success'] = "Cập nhật thành công!";
                 // Cập nhật lại biến $tour để hiển thị ngay
-                $tour = array_merge($tour, $data); 
+                $tour = array_merge($tour, $data);
             } else {
                 $_SESSION['error'] = "Cập nhật thất bại!";
             }
-            
+
             // Redirect về danh sách
             header('Location: index.php?act=tour_list');
             exit();
@@ -210,7 +209,7 @@ class TourController extends Controller
         exit();
     }
 
-        public function detailTour()
+    public function detailTour()
     {
         $id = $_GET['id'] ?? 0;
 
@@ -251,7 +250,7 @@ class TourController extends Controller
             'category_name' => $category_name,
             'guide_name' => $guide_name
         ];
-        
+
         extract($data_for_view);
 
         // 5. Gọi View
@@ -260,35 +259,36 @@ class TourController extends Controller
         $page_css = "assets/css/tour.css";
         require_once './app/views/layouts/main.php';
     }
-    
-public function tourBookings() {
-    $id = $_GET['id'] ?? 0;
-    
-    // 1. Lấy thông tin Tour
-    $tour = $this->tourModel->getTourById($id);
-    
-    // 2. Lấy danh sách khách đã đặt của Tour này
-    // Lưu ý: Cần khởi tạo BookingModel trong __construct nếu chưa có
-    // $this->bookingModel = $this->model('BookingModel');
-    $bookings = $this->model('BookingModel')->getBookingsByTourId($id);
 
-    // 3. Tính toán số lượng khách
-    $current_people = 0;
-    foreach($bookings as $b) {
-        if($b['status'] != 'Đã hủy') {
-            $current_people += $b['people'];
+    public function tourBookings()
+    {
+        $id = $_GET['id'] ?? 0;
+
+        // 1. Lấy thông tin Tour
+        $tour = $this->tourModel->getTourById($id);
+
+        // 2. Lấy danh sách khách đã đặt của Tour này
+        // Lưu ý: Cần khởi tạo BookingModel trong __construct nếu chưa có
+        // $this->bookingModel = $this->model('BookingModel');
+        $bookings = $this->model('BookingModel')->getBookingsByTourId($id);
+
+        // 3. Tính toán số lượng khách
+        $current_people = 0;
+        foreach ($bookings as $b) {
+            if ($b['status'] != 'Đã hủy') {
+                $current_people += $b['people'];
+            }
         }
-    }
-    
-    // 4. Xử lý kích hoạt Tour (Nếu Admin bấm nút kích hoạt tại đây)
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['activate_tour'])) {
-        $this->tourModel->updateTourStatus($id, 2); // 2 = Hoạt động
-        $_SESSION['success'] = "Đã kích hoạt tour thành công!";
-        header("Location: index.php?act=tour_bookings&id=$id");
-        exit;
-    }
 
-    $view_path = './app/views/tours/tour_bookings.php';
-    require_once './app/views/layouts/main.php';
-}
+        // 4. Xử lý kích hoạt Tour (Nếu Admin bấm nút kích hoạt tại đây)
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['activate_tour'])) {
+            $this->tourModel->updateTourStatus($id, 2); // 2 = Hoạt động
+            $_SESSION['success'] = "Đã kích hoạt tour thành công!";
+            header("Location: index.php?act=tour_bookings&id=$id");
+            exit;
+        }
+
+        $view_path = './app/views/tours/tour_bookings.php';
+        require_once './app/views/layouts/main.php';
+    }
 }

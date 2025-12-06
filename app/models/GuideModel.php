@@ -105,4 +105,7 @@ class GuideModel extends Model {
             return false;
         }
     }
+
+
+
 }

@@ -1,32 +1,37 @@
 <?php
-class GuideController extends Controller {
+class GuideController extends Controller
+{
     private $guideModel;
     private $userModel;
     public $tourModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->guideModel = $this->model('GuideModel');
-        $this->userModel = $this->model('UserModel'); // Dùng để check user trùng và delete
-        $this->tourModel = new TourModel();
+        $this->userModel = $this->model('UserModel');
+        $this->tourModel = $this->model('TourModel');
     }
 
     // 1. LIST
-    public function index() {
+    public function index()
+    {
         $listGuides = $this->guideModel->getAllGuides();
-        $page_css = "assets/css/user.css"; // Tận dụng CSS của user
-        $view_path = "app/views/guides/list.php"; 
+        $page_css = "assets/css/user.css";
+        $view_path = "app/views/guides/list.php";
         require_once "./app/views/layouts/main.php";
     }
 
     // 2. FORM ADD
-    public function create() {
+    public function create()
+    {
         $page_css = "assets/css/user.css";
         $view_path = "app/views/guides/add.php";
         require_once "./app/views/layouts/main.php";
     }
 
     // 3. STORE
-    public function store() {
+    public function store()
+    {
         if (isset($_POST['add_guide'])) {
             // Check trùng username bên bảng users
             if ($this->userModel->checkUsernameExists($_POST['username'])) {
@@ -35,7 +40,6 @@ class GuideController extends Controller {
                 return;
             }
 
-            // Upload ảnh
             $avatar = "";
             if (isset($_FILES['avatar']) && $_FILES['avatar']['size'] > 0) {
                 $safeName = str_replace(' ', '_', $_FILES['avatar']['name']);
@@ -43,10 +47,9 @@ class GuideController extends Controller {
                 move_uploaded_file($_FILES['avatar']['tmp_name'], "assets/uploads/" . $avatar);
             }
 
-            // Data User
             $dataUser = [
                 ':username' => $_POST['username'],
-                ':password' => $_POST['password'], // Nên mã hóa MD5/Bcrypt
+                ':password' => $_POST['password'],
                 ':full_name' => $_POST['full_name'],
                 ':email' => $_POST['email'],
                 ':phone' => $_POST['phone'],
@@ -71,7 +74,8 @@ class GuideController extends Controller {
     }
 
     // 4. FORM EDIT
-    public function edit() {
+    public function edit()
+    {
         $id = $_GET['id'] ?? 0;
         $guide = $this->guideModel->getGuideById($id);
         if ($guide) {
@@ -85,10 +89,11 @@ class GuideController extends Controller {
     }
 
     // 5. UPDATE
-    public function update() {
+    public function update()
+    {
         if (isset($_POST['update_guide'])) {
             $id = $_POST['user_id'];
-            
+
             $avatar = $_POST['old_avatar'];
             if (isset($_FILES['avatar']) && $_FILES['avatar']['size'] > 0) {
                 $safeName = str_replace(' ', '_', $_FILES['avatar']['name']);
@@ -101,7 +106,7 @@ class GuideController extends Controller {
                 'email' => $_POST['email'],
                 'phone' => $_POST['phone'],
                 'birthday' => $_POST['birthday'],
-                'password' => $_POST['password'], 
+                'password' => $_POST['password'],
                 'avatar' => $avatar
             ];
 
@@ -120,7 +125,8 @@ class GuideController extends Controller {
     }
 
     // 6. DETAIL
-    public function detail() {
+    public function detail()
+    {
         $id = $_GET['id'] ?? 0;
         $guide = $this->guideModel->getGuideById($id);
         $tours = $this->tourModel->getToursByGuide($id);
@@ -132,9 +138,10 @@ class GuideController extends Controller {
             header('Location: index.php?act=list_guide');
         }
     }
-    
-    // 7. DELETE (Dùng luôn hàm của UserModel vì có Cascade)
-    public function delete() {
+
+    // 7. DELETE
+    public function delete()
+    {
         $id = $_GET['id'] ?? 0;
         if ($this->userModel->deleteUser($id)) {
             $_SESSION['success'] = "Đã xóa HDV và tài khoản liên quan!";
@@ -143,4 +150,19 @@ class GuideController extends Controller {
         }
         header('Location: index.php?act=list_guide');
     }
+
+
+public function myTour()
+{
+    $guide_id = $_SESSION['user']['guide_id'] ?? null;
+
+    if (!$guide_id) {
+        die("Không tìm thấy guide_id trong session!");
+    }
+
+    $tours = $this->tourModel->getToursByGuide($guide_id);
+
+    $view_path = "./app/views/guide/myTour.php";
+    require_once "./app/views/layouts/mainGuide.php";
+}
 }

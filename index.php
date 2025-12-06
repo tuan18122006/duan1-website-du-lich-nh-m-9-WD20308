@@ -3,7 +3,7 @@ session_start();
 ob_start();
 
 // SỬA LẠI ĐƯỜNG DẪN (Bỏ ../ đi)
-require_once 'app/helpers/env.php';      // Cũ: ../app/helpers/env.php
+require_once 'app/helpers/env.php';      
 require_once 'app/helpers/functions.php';
 
 require_once 'app/core/Model.php';
@@ -29,7 +29,7 @@ require_once 'app/controllers/BookingController.php';
 
 
 // 5. Lấy tham số act từ URL (mặc định là trang chủ)
-$act = $_GET['act'] ?? 'login';
+$act = $_GET['act'] ?? 'login'; 
 
 // 6. Điều hướng bằng Switch (Dễ dùng hơn Match)
 switch ($act) {
@@ -89,12 +89,12 @@ switch ($act) {
         (new UserController())->detail();
         break;
 
-        // === DASHBOARD ===
+    // === DASHBOARD ===
     case 'dashboard':
         (new DashboardController())->showDashboardCategory();
         break;
 
-        // === QUẢN LÝ TOUR ===
+    // === QUẢN LÝ TOUR ===
     case 'tour_list':
         (new TourController())->showTour();
         break;
@@ -113,16 +113,16 @@ switch ($act) {
     case 'detail_tour':
         (new TourController())->detailTour();
         break;
-case 'tour_bookings':
+    case 'tour_bookings':
         (new TourController())->tourBookings();
         break;
 
 
-            // === QUẢN LÝ HDV ===
+    // === QUẢN LÝ HDV ===
     case 'list_guide':
         (new GuideController())->index();
         break;
-    
+
     case 'add_guide':
         (new GuideController())->create();
         break;
@@ -148,6 +148,19 @@ case 'tour_bookings':
         break;
 
 
+
+        // === QUẢN LÝ HDV ===
+    case 'guide_home':
+        (new DashboardController())->guideHome();
+        break;
+
+    case 'my_tour':
+        (new GuideController())->myTour();
+        break;
+
+
+
+
     // booking //
     case 'booking_list':
         (new BookingController())->index();
@@ -158,6 +171,7 @@ case 'tour_bookings':
     case 'booking_detail':
         (new BookingController())->detail();
         break;
+
 
     default:
         echo "<h2>Lỗi 404: Trang không tồn tại!</h2>";

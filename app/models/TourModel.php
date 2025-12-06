@@ -155,6 +155,7 @@ class TourModel extends Model
         return $this->db->prepare($sql)->fetchAll();
     }
 
+
     public function getToursByGuide($guide_id)
     {
         $sql = "SELECT * FROM tours WHERE guide_id = :guide_id";
@@ -162,7 +163,6 @@ class TourModel extends Model
         $stmt->execute(['guide_id' => $guide_id]);
         return $stmt->fetchAll();
     }
-
 
 
 

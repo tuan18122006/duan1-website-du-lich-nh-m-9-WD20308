@@ -2,19 +2,21 @@
 class LoginModel extends Model
 {
     // Kiểm tra login
-    public function checkLogin($username, $password)
-    {
-        $sql = "SELECT * FROM users WHERE username = :username";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['username' => $username]);
-        $user = $stmt->fetch();
+public function checkLogin($username, $password)
+{
+    $sql = "SELECT users.*, guides.guide_id AS guide_id
+            FROM users
+            LEFT JOIN guides ON guides.user_id = users.user_id
+            WHERE users.username = :username";
 
-        // Nếu dùng hash password
-        // if($user && password_verify($password, $user['password'])) return $user;
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['username' => $username]);
+    $user = $stmt->fetch();
 
-        // Nếu chưa hash
-        if($user && $user['password'] == $password) return $user;
-
-        return false;
+    if ($user && $user['password'] == $password) {
+        return $user;
     }
+
+    return false;
+}
 }
