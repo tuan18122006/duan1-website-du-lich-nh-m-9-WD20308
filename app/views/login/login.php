@@ -22,7 +22,7 @@
 
         <div class="form-container">
             <div class="slide-controls">
-                <label for="login" class="slide login">Đăng Nhập</label>>
+                <label for="login" class="slide login">Đăng Nhập</label>
             </div>
 
             <div class="form-inner">

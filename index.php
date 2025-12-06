@@ -22,17 +22,21 @@ require_once 'app/controllers/DashboardController.php';
 require_once 'app/controllers/GuideController.php';
 require_once 'app/controllers/LoginController.php';
 require_once 'app/controllers/GuideController.php';
-
+require_once 'app/controllers/WelcomeController.php';
 // require_once 'app/controllers/TourController.php';
 
 
 // 5. Lấy tham số act từ URL (mặc định là trang chủ)
-$act = $_GET['act'] ?? 'login';
+$act = $_GET['act'] ?? 'welcome';
 
 // 6. Điều hướng bằng Switch (Dễ dùng hơn Match)
 switch ($act) {
 
     // === TRANG CHỦ ===
+    case 'welcome':
+    (new WelcomeController())->index();
+    break;
+
     // === LOGIN ===
     case 'login':             // Hiển thị form login
         (new LoginController())->index();
@@ -46,9 +50,9 @@ switch ($act) {
         (new LoginController())->logout();
         break;
 
-    case 'home':
-        (new DashboardController())->showDashboardCategory();
-        break;
+    // case 'home':
+    //     (new DashboardController())->showDashboardCategory();
+    //     break;
 
     // === QUẢN LÝ TÀI KHOẢN (USER) ===
     case 'listkh':
@@ -75,13 +79,6 @@ switch ($act) {
         (new UserController())->delete();
         break;
 
-    // case 'login':
-    //     (new UserController())->login();
-    //     break;
-
-    // case 'checklogin':
-    //     (new UserController())->handleLogin();
-    //     break;
 
     case 'detailkh':
         (new UserController())->detail();
