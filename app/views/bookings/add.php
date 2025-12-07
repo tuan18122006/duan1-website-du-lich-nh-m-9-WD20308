@@ -79,7 +79,12 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Số lượng người (*)</label>
-                                <input type="number" name="people" id="peopleInput" class="form-control" value="1" min="1" required oninput="calculateTotal()">
+                                <input type="number" name="people" id="peopleInput" class="form-control" value="1" min="1" required oninput="calculateTotal(); generatePassengerForms()">
+                            </div>
+                            <div class="col-12 mt-3">
+                                <h6 class="text-primary fw-bold border-bottom pb-2">Thông tin hành khách tham gia:</h6>
+                                <div id="passengerList" class="row g-3">
+                                    </div>
                             </div>
                         </div>
 
@@ -183,4 +188,48 @@
         let total = price * people;
         document.getElementById('totalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(total);
     }
+        // Hàm tạo form nhập thông tin người đi kèm
+function generatePassengerForms() {
+    let count = document.getElementById('peopleInput').value;
+    let container = document.getElementById('passengerList');
+    
+    if (count < 1) return;
+    container.innerHTML = '';
+
+    for (let i = 0; i < count; i++) {
+        let html = `
+            <div class="col-md-6">
+                <div class="card bg-light border-0 shadow-sm mb-3">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between">
+                            <strong class="text-primary small">#${i + 1} Hành khách</strong>
+                        </div>
+                        
+                        <div class="mt-2 mb-2">
+                            <input type="text" name="passengers[${i}][name]" 
+                                   class="form-control form-control-sm" 
+                                   placeholder="Họ tên khách ${i + 1}" required>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" name="passengers[${i}][age]" 
+                                       class="form-control form-control-sm" 
+                                       placeholder="Nhập tuổi" min="1" required>
+                            </div>
+                            <div class="col-6">
+                                <select name="passengers[${i}][gender]" class="form-select form-select-sm">
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+}
 </script>

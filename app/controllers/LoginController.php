@@ -8,38 +8,44 @@ class LoginController extends Controller
         $this->loginModel = $this->model('LoginModel');
     }
 
-    // Hiển thị trang login
     public function index()
     {
         $this->view('login/login');
     }
 
-    // Xử lý đăng nhập
     public function login()
     {
-        // Nhận dữ liệu từ form
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
 
-        // Kiểm tra user trong database
         $user = $this->loginModel->checkLogin($username, $password);
 
         if ($user) {
-            // Đăng nhập thành công
-            $_SESSION['user'] = $user;
-            header("Location: index.php?act=dashboard");
-            exit;
+
+            $_SESSION['user'] = [
+                'id'       => $user['id'],
+                'name'     => $user['fullname'] ?? $user['username'],
+                'role'     => $user['role'],
+                'guide_id' => $user['guide_id'] ?? null
+            ];
+
+            if ($user['role'] == 1) {
+                header("Location: index.php?act=dashboard");
+                exit;
+            }
+
+            if ($user['role'] == 2) {
+                header("Location: index.php?act=guide_home");
+                exit;
+            }
         } else {
-            // Sai thông tin → trả lại form cùng thông báo lỗi
-            $error = "Sai username hoặc password";
-            $this->view('login/login', ['error' => $error]);
+            $this->view('login/login', ['error' => 'Sai username hoặc password']);
         }
     }
 
-    // Đăng xuất
     public function logout()
     {
-        session_destroy();        // Hủy session
+        session_destroy();
         header("Location: index.php?act=login");
         exit;
     }

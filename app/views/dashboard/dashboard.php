@@ -1,24 +1,31 @@
 <?php
 // File: app/views/dashboard/dashboard.php
 
-// 1. Xử lý Logic hiển thị tiêu đề và trạng thái nút bấm dựa trên URL
-$filter = $_GET['filter'] ?? 'year'; // Mặc định là năm
+// 1. LẤY THAM SỐ TỪ URL (Sửa 'filter' thành 'time' cho khớp với Controller)
+$filter = $_GET['time'] ?? 'year'; 
 $date_selected = $_GET['date'] ?? date('Y-m-d');
 
-// Tạo tiêu đề động cho biểu đồ
+// 2. TẠO TIÊU ĐỀ ĐỘNG (Sửa logic so sánh cho khớp giá trị)
 $chart_title = "Năm " . date('Y');
-if ($filter == 'today') $chart_title = "Hôm nay (" . date('d/m/Y') . ")";
-if ($filter == 'month') $chart_title = "Tháng " . date('m/Y');
-if ($filter == 'custom') $chart_title = "Ngày " . date('d/m/Y', strtotime($date_selected));
 
-// Xử lý dữ liệu mặc định để tránh lỗi nếu Controller chưa truyền sang
+if ($filter == 'today') {
+    $chart_title = "Hôm nay (" . date('d/m/Y') . ")";
+} 
+elseif ($filter == 'this_month') { // Sửa 'month' thành 'this_month'
+    $chart_title = "Tháng " . date('m/Y');
+} 
+elseif ($filter == 'custom') {
+    $chart_title = "Ngày " . date('d/m/Y', strtotime($date_selected));
+}
+
+// Xử lý dữ liệu mặc định để tránh lỗi
 $total_tours = $total_tours ?? 0;
 $total_revenue = $total_revenue ?? 0;
 $total_customers = $total_customers ?? 0;
 $chart_data_json = $chart_data_json ?? '[]';
+// Mặc định nhãn cho năm
 $chart_labels = $chart_labels ?? ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
 ?>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -57,9 +64,14 @@ $chart_labels = $chart_labels ?? ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'
 
     <div class="mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div class="btn-group btn-filter-group" role="group">
-            <a href="index.php?act=dashboard&time=today" class="btn">Hôm nay</a>
-            <a href="index.php?act=dashboard&time=this_month" class="btn">Tháng này</a>
-            <a href="?filter=year" class="btn <?= $filter == 'year' ? 'active' : '' ?>">Năm nay</a>
+            <a href="index.php?act=dashboard&time=today" 
+            class="btn <?= $filter == 'today' ? 'active' : '' ?>">Hôm nay</a>
+            
+            <a href="index.php?act=dashboard&time=this_month" 
+            class="btn <?= $filter == 'this_month' ? 'active' : '' ?>">Tháng này</a>
+            
+            <a href="index.php?act=dashboard&time=year" 
+            class="btn <?= $filter == 'year' ? 'active' : '' ?>">Năm nay</a>
         </div>
 
         <div class="d-flex align-items-center">

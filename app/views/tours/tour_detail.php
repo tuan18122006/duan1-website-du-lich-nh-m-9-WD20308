@@ -50,10 +50,8 @@
                         <?= number_format($tour['base_price']) ?> VNĐ
                     </span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Số lượng khách:</span>
-                    <span class="info-value"><?= $tour['people'] ?> người</span>
-                </div>
+
+                
             </div>
         </div>
 

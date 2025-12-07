@@ -15,7 +15,21 @@ class TourController extends Controller
         $tour_list = $this->tourModel->getToursByType(0);
         $categories = $this->tourModel->getAllCategories();
         
+        // Fix lỗi: $filter_value chưa có, gán mặc định là null hoặc lấy từ GET
+        $filter_value = $_GET['category_id'] ?? null;
+
+        $data = [
+            'tour_list' => $tour_list,
+            'category_filter' => $filter_value, 
+            'categories' => $categories
+        ];
+
+        extract($data);
+
         $view_path = './app/views/tours/tour_list.php';
+        $page_css = "assets/css/tour.css";
+        $page_title = "Danh sách Tour";
+
         require_once "./app/views/layouts/main.php";
     }
 
@@ -33,10 +47,11 @@ class TourController extends Controller
         require_once "./app/views/layouts/main.php";
     }
 
-    // 3. THÊM TOUR MỚI (ĐÃ BỎ CHỌN HDV)
+    // 3. THÊM TOUR MỚI
     public function addTour()
     {
         $categories = $this->tourModel->getAllCategories() ?? [];
+        $guides = $this->tourModel->getAllGuides(); // Nếu cần dùng
         $sticky_data = [];
         $error_occurred = false;
 
@@ -46,6 +61,7 @@ class TourController extends Controller
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $upload_dir = "assets/uploads/tours/";
                 if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+                
                 $safeName = str_replace(' ', '_', $_FILES['image']['name']);
                 $image_name = time() . '_' . $safeName;
                 move_uploaded_file($_FILES['image']['tmp_name'], $upload_dir . $image_name);
@@ -97,7 +113,7 @@ class TourController extends Controller
         require_once './app/views/layouts/main.php';
     }
 
-    // 4. CẬP NHẬT TOUR (ĐÃ BỎ CHỌN HDV)
+    // 4. CẬP NHẬT TOUR (Đã sửa lỗi logic if/else)
     public function updateTour()
     {
         $id = $_GET['id'] ?? null;
@@ -111,9 +127,10 @@ class TourController extends Controller
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Giữ ảnh cũ nếu không up ảnh mới
             $image_name = $tour['image_url'];
             $upload_dir = 'assets/uploads/tours/';
-            
+
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $safeName = str_replace(' ', '_', $_FILES['image']['name']);
                 $newImg = time() . '_' . $safeName;
@@ -141,11 +158,11 @@ class TourController extends Controller
 
             if ($this->tourModel->updateTour($data)) {
                 $_SESSION['success'] = "Cập nhật thành công!";
-                $tour = array_merge($tour, $data); 
             } else {
                 $_SESSION['error'] = "Cập nhật thất bại!";
             }
-            
+
+            // Redirect về danh sách sau khi update
             header('Location: index.php?act=tour_list');
             exit();
         }
@@ -198,8 +215,6 @@ class TourController extends Controller
             }
         }
 
-        // Với Tour thường, HDV được gán theo Lịch trình, không phải Tour chung
-        // Nên ở đây ta có thể để trống hoặc lấy HDV của lịch gần nhất (tùy ý)
         $guide_name = "Xem trong Lịch khởi hành";
 
         $data_for_view = [
@@ -207,7 +222,7 @@ class TourController extends Controller
             'category_name' => $category_name,
             'guide_name' => $guide_name
         ];
-        
+
         extract($data_for_view);
 
         $view_path = './app/views/tours/tour_detail.php';
@@ -216,12 +231,11 @@ class TourController extends Controller
         require_once './app/views/layouts/main.php';
     }
 
-    // 7. QUẢN LÝ LỊCH TRÌNH (Vẫn giữ HDV ở đây)
+    // 7. QUẢN LÝ LỊCH TRÌNH
     public function manageSchedules() {
         $tour_id = $_GET['id'] ?? 0;
         $tour = $this->tourModel->getTourById($tour_id);
         
-        // Vẫn lấy danh sách HDV ở đây để gán cho từng lịch
         $guides = $this->tourModel->getAllGuides(); 
         
         if (!$tour) {
@@ -259,7 +273,7 @@ class TourController extends Controller
         require_once './app/views/layouts/main.php';
     }
 
-    // 8. BÁO GIÁ TOUR CUSTOM (Vẫn giữ HDV ở đây)
+    // 8. BÁO GIÁ TOUR CUSTOM
     public function quoteTour() {
         $id = $_GET['id'] ?? 0;
         $tour = $this->tourModel->getTourById($id);
@@ -288,11 +302,14 @@ class TourController extends Controller
         require_once "./app/views/layouts/main.php";
     }
 
-    // 9. CÁC HÀM KHÁC (Booking, Lịch sử...)
+    // 9. QUẢN LÝ BOOKING & LỊCH SỬ (Đã gộp 2 hàm booking thành 1)
     public function tourBookings() {
         $id = $_GET['id'] ?? 0;
-        $tour = $this->tourModel->getTourById($id);
+        
+        // Gọi Model Booking
         $bookingModel = $this->model('BookingModel'); 
+        
+        $tour = $this->tourModel->getTourById($id);
         $bookings = $bookingModel->getBookingsByTourId($id);
 
         $current_people = 0;
@@ -300,8 +317,10 @@ class TourController extends Controller
             if($b['status'] != 'Đã hủy') $current_people += $b['people'];
         }
         
+        // Xử lý POST (Kích hoạt hoặc Kết thúc)
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (isset($_POST['activate_tour'])) {
+                // Status 2 = Đang hoạt động
                 $this->tourModel->updateTourStatus($id, 2);
                 $bookingModel->updateAllBookingsStatus($id, 'Đã xác nhận');
                 $_SESSION['success'] = "Đã kích hoạt Tour!";
@@ -309,6 +328,7 @@ class TourController extends Controller
                 exit;
             }
             if (isset($_POST['finish_tour'])) {
+                // Status 3 = Hoàn thành
                 $this->tourModel->updateTourStatus($id, 3);
                 $bookingModel->updateAllBookingsStatus($id, 'Hoàn thành');
                 $_SESSION['success'] = "Tour đã kết thúc!";
@@ -327,4 +347,54 @@ class TourController extends Controller
         $page_title = "Lịch sử Tour";
         require_once './app/views/layouts/main.php';
     }
+// File: app/controllers/TourController.php
+
+public function passengerList() {
+    $tour_id = $_GET['id'] ?? 0;
+    $schedule_id = $_GET['schedule_id'] ?? 0;
+
+    $tour = $this->tourModel->getTourById($tour_id);
+    
+    if (!$tour) {
+        $_SESSION['error'] = "Không tìm thấy Tour!";
+        header('Location: index.php?act=tour_list');
+        exit;
+    }
+
+    $bookingModel = $this->model('BookingModel');
+
+    // === TRƯỜNG HỢP 1: TOUR THIẾT KẾ (CUSTOM) ===
+    if ($tour['tour_type'] == 1) {
+        // Tour thiết kế chỉ có 1 booking duy nhất gắn liền, lấy thẳng danh sách
+        // Sử dụng hàm getPassengersByTour đã viết trong Model
+        $passengers = $bookingModel->getPassengersByTour($tour_id);
+        
+        $is_custom = true; // Cờ báo hiệu cho View
+        $schedule = null;  // Custom tour không cần hiển thị thông tin schedule phức tạp
+        
+        $view_path = './app/views/tours/passenger_list.php';
+        require_once './app/views/layouts/main.php';
+    } 
+    
+    // === TRƯỜNG HỢP 2: TOUR CỐ ĐỊNH (STANDARD) ===
+    else {
+        // Nếu chưa chọn ngày khởi hành -> Chuyển sang trang chọn ngày
+        if ($schedule_id == 0) {
+            $schedules = $this->tourModel->getSchedules($tour_id);
+            $view_path = './app/views/tours/select_schedule_passengers.php'; 
+            /* Lưu ý: Bạn cần có file view select_schedule_passengers.php 
+               hoặc tái sử dụng manage_schedules.php nhưng chỉ hiện nút "Xem khách" */
+            require_once './app/views/layouts/main.php';
+        } 
+        // Nếu đã có ngày khởi hành -> Xem danh sách
+        else {
+            $schedule = $this->tourModel->getScheduleById($schedule_id);
+            $passengers = $bookingModel->getPassengersBySchedule($schedule_id);
+            
+            $is_custom = false;
+            $view_path = './app/views/tours/passenger_list.php';
+            require_once './app/views/layouts/main.php';
+        }
+    }
+}
 }

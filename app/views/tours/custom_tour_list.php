@@ -44,12 +44,12 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-end pe-3">
-                                    <a href="index.php?act=tour_bookings&id=<?= $tour['tour_id'] ?>" 
-                                       class="btn btn-outline-success btn-sm me-1" 
-                                       title="Xem khách đặt">
-                                       <i class="fas fa-users"></i> Khách
-                                    </a>
-
+                                <a href="index.php?act=passenger_list&id=<?= $tour['tour_id'] ?>" 
+                                class="btn btn-outline-success btn-sm me-1" 
+                                title="Xem danh sách hành khách">
+                                <i class="fas fa-users"></i> Danh sách Khách
+                                </a>
+                                        
                                     <?php if ($tour['base_price'] == 0): ?>
                                         
                                         <a href="index.php?act=tour_quote&id=<?= $tour['tour_id'] ?>" 

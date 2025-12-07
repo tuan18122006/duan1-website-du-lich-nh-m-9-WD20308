@@ -70,7 +70,8 @@
 
                     <div class="form-group">
                         <label>Ngày sinh</label>
-                        <input type="date" name="birthday" value="<?= $khachhang['birthday'] ?>">
+                        <input type="date" name="birthday" 
+                            value="<?= !empty($khachhang['birthday']) ? date('Y-m-d', strtotime($khachhang['birthday'])) : '' ?>">
                     </div>
 
                 <div style="text-align: right;">

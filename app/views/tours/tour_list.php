@@ -67,9 +67,11 @@
                                     <?php 
                                         $img = !empty($tour['image_url']) ? "assets/uploads/tours/".$tour['image_url'] : "assets/images/no-image.jpg";
                                     ?>
-                                    <img src="<?= $img ?>" 
-                                         style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;" 
-                                         onerror="this.src='https://via.placeholder.com/60x40'">
+                                    <a href="index.php?act=detail_tour&id=<?= $tour['tour_id'] ?>">
+                                        <img src="<?= $img ?>" 
+                                            style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;" 
+                                            onerror="this.src='https://via.placeholder.com/60x40'">
+                                    </a>
                                 </td>
                                 <td><?= htmlspecialchars($tour['category_name'] ?? '---') ?></td>
                                 <td class="text-danger fw-bold">
@@ -82,30 +84,36 @@
                                         <span class="badge bg-secondary">Đã đóng</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="text-end pe-3">
-                                    <a href="index.php?act=tour_schedules&id=<?= $tour['tour_id'] ?>" 
-                                       class="btn btn-info btn-sm text-white me-1" 
-                                       title="Quản lý lịch khởi hành">
-                                       <i class="fas fa-calendar-alt"></i>
-                                    </a>
+                            <td class="text-end pe-3">
+                                <a href="index.php?act=tour_schedules&id=<?= $tour['tour_id'] ?>" 
+                                class="btn btn-info btn-sm text-white me-1" 
+                                title="Quản lý lịch khởi hành">
+                                <i class="fas fa-calendar-alt"></i>
+                                </a>
 
-                                    <a href="index.php?act=tour_bookings&id=<?= $tour['tour_id'] ?>" 
-                                       class="btn btn-primary btn-sm me-1" 
-                                       title="Xem danh sách khách">
-                                       <i class="fas fa-users"></i>
-                                    </a>
+                                <a href="index.php?act=tour_bookings&id=<?= $tour['tour_id'] ?>" 
+                                class="btn btn-primary btn-sm me-1" 
+                                title="Quản lý Đơn đặt tour">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                </a>
 
-                                    <a href="index.php?act=update_tour&id=<?= $tour['tour_id'] ?>" 
-                                       class="btn btn-warning btn-sm me-1" title="Sửa tour">
-                                       <i class="fas fa-edit"></i>
-                                    </a>
-                                    
-                                    <a href="index.php?act=delete_tour&id=<?= $tour['tour_id'] ?>"
-                                       onclick="return confirm('Bạn có chắc muốn xóa tour này?')"
-                                       class="btn btn-danger btn-sm" title="Xóa tour">
-                                       <i class="fas fa-trash"></i>
-                                    </a>
-                                </td>
+                                <a href="index.php?act=tour_passenger_list&id=<?= $tour['tour_id'] ?>" 
+                                class="btn btn-success btn-sm me-1" 
+                                title="Danh sách khách đoàn chi tiết">
+                                <i class="fas fa-users"></i> DS Khách
+                                </a>
+
+                                <a href="index.php?act=update_tour&id=<?= $tour['tour_id'] ?>" 
+                                class="btn btn-warning btn-sm me-1" title="Sửa tour">
+                                <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                <a href="index.php?act=delete_tour&id=<?= $tour['tour_id'] ?>"
+                                onclick="return confirm('Bạn có chắc muốn xóa tour này?')"
+                                class="btn btn-danger btn-sm" title="Xóa tour">
+                                <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
                             </tr>
                         <?php endforeach ?>
                     <?php else: ?>
