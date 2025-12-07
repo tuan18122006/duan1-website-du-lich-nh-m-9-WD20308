@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    
     <?php if (isset($page_css) && !empty($page_css)): ?>
         <link rel="stylesheet" href="<?= $page_css ?>">
     <?php endif; ?>
@@ -217,41 +216,60 @@
     <!-- =============================================
          2. SIDEBAR (CÓ LOGIC PHP)
          ============================================= -->
-    <nav class="sidebar">
+<nav class="sidebar">
         <?php
-        // LOGIC PHP: Giữ trạng thái menu khi reload trang
         $act = $_GET['act'] ?? 'dashboard';
+
+        // --- 1. LOGIC MENU TÀI KHOẢN ---
         $userActs = ['listkh', 'addkh', 'editkh', 'detailkh', 'list_guide', 'add_guide', 'edit_guide', 'detail_guide'];
-        
-        $showUserMenu = in_array($act, $userActs) ? 'show' : '';
-        $activeUserParent = in_array($act, $userActs) ? 'active' : 'collapsed';
-        $ariaExpanded = in_array($act, $userActs) ? 'true' : 'false';
+        $isUserActive = in_array($act, $userActs);
+        $showUserMenu = $isUserActive ? 'show' : '';
+        $userExpanded = $isUserActive ? 'true' : 'false';
+        $activeUserParent = $isUserActive ? 'active' : 'collapsed';
+
+        // --- 2. LOGIC MENU TOUR (MỚI) ---
+        // Bao gồm cả tour thường và tour custom
+        $tourActs = ['tour_list', 'add_tour', 'update_tour', 'tour_bookings', 'tour_schedules', 'detail_tour', 'custom_tour_list'];
+        $isTourActive = in_array($act, $tourActs);
+        $showTourMenu = $isTourActive ? 'show' : '';
+        $tourExpanded = $isTourActive ? 'true' : 'false';
+        $activeTourParent = $isTourActive ? 'active' : 'collapsed';
+
+        // --- 3. LOGIC MENU BOOKING (MỚI) ---
+        // Bao gồm cả booking thường và booking custom
+        $bookingActs = ['booking_list', 'booking_detail', 'booking_add', 'custom_booking_list'];
+        $isBookingActive = in_array($act, $bookingActs);
+        $showBookingMenu = $isBookingActive ? 'show' : '';
+        $bookingExpanded = $isBookingActive ? 'true' : 'false';
+        $activeBookingParent = $isBookingActive ? 'active' : 'collapsed';
         ?>
 
-
         <ul class="nav flex-column">
-            <!-- Dashboard -->
             <li class="nav-item">
                 <a class="nav-link <?= $act == 'dashboard' ? 'active' : '' ?>" href="index.php?act=dashboard">
                     <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
             </li>
 
-            <!-- Quản lý tài khoản (Đa cấp) -->
             <li class="nav-item">
-                <a class="nav-link <?= $activeUserParent ?>" href="#subMenuUser" data-bs-toggle="collapse" aria-expanded="<?= $ariaExpanded ?>">
+                <a class="nav-link <?= ($act == 'tour_history') ? 'active' : '' ?>" href="index.php?act=tour_history">
+                    <i class="fas fa-history me-2"></i> Lịch sử Tour
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= $activeUserParent ?>" href="#subMenuUser" data-bs-toggle="collapse" aria-expanded="<?= $userExpanded ?>">
                     <i class="bi bi-people me-2"></i> Quản lý tài khoản 
                     <i class="fas fa-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                 </a>
                 <div class="collapse <?= $showUserMenu ?>" id="subMenuUser">
                     <ul class="nav flex-column ps-4">
                         <li class="nav-item">
-                            <a class="nav-link <?= ($act == 'listkh' || $act == 'addkh') ? 'fw-bold text-primary' : '' ?>" href="index.php?act=listkh">
+                            <a class="nav-link <?= ($act == 'listkh') ? 'text-primary fw-bold' : '' ?>" href="index.php?act=listkh">
                                 <i class="fas fa-user me-2"></i> Người dùng
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?= ($act == 'list_guide' || $act == 'add_guide') ? 'fw-bold text-primary' : '' ?>" href="index.php?act=list_guide">
+                            <a class="nav-link <?= ($act == 'list_guide') ? 'text-primary fw-bold' : '' ?>" href="index.php?act=list_guide">
                                 <i class="fas fa-id-card me-2"></i> Hướng dẫn viên
                             </a>
                         </li>
@@ -259,29 +277,57 @@
                 </div>
             </li>
 
-            <!-- Các mục khác -->
             <li class="nav-item">
-                <a class="nav-link <?= strpos($act, 'tour') !== false ? 'active' : '' ?>" href="index.php?act=tour_list">
-                    <i class="bi bi-box-seam me-2"></i> Quản lí Tour
+                <a class="nav-link <?= $activeTourParent ?>" href="#subMenuTour" data-bs-toggle="collapse" aria-expanded="<?= $tourExpanded ?>">
+                    <i class="bi bi-box-seam me-2"></i> Quản lý Tour
+                    <i class="fas fa-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                 </a>
+                <div class="collapse <?= $showTourMenu ?>" id="subMenuTour">
+                    <ul class="nav flex-column ps-4">
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($act == 'tour_list' || $act == 'add_tour') ? 'text-primary fw-bold' : '' ?>" 
+                               href="index.php?act=tour_list">
+                                <i class="fas fa-map me-2"></i> Tour Cố định
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($act == 'custom_tour_list') ? 'text-primary fw-bold' : '' ?>" 
+                               href="index.php?act=custom_tour_list">
+                                <i class="fas fa-drafting-compass me-2"></i> Tour Thiết kế
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
+
             <li class="nav-item">
-                <a class="nav-link" href="index.php?act=booking_list">
-                    <i class="bi bi-receipt me-2"></i> Quản lí Booking
+                <a class="nav-link <?= $activeBookingParent ?>" href="#subMenuBooking" data-bs-toggle="collapse" aria-expanded="<?= $bookingExpanded ?>">
+                    <i class="bi bi-receipt me-2"></i> Quản lý Booking
+                    <i class="fas fa-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                 </a>
+                <div class="collapse <?= $showBookingMenu ?>" id="subMenuBooking">
+                    <ul class="nav flex-column ps-4">
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($act == 'booking_list') ? 'text-primary fw-bold' : '' ?>" 
+                               href="index.php?act=booking_list">
+                                <i class="fas fa-list-check me-2"></i> Đơn Booking
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($act == 'custom_booking_list') ? 'text-primary fw-bold' : '' ?>" 
+                               href="index.php?act=custom_booking_list">
+                                <i class="fas fa-file-signature me-2"></i> Yêu cầu Thiết kế
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="index.php?act=tour_history">
-                    <i class="fas fa-history"></i> Lịch sử Tour
-                </a>
-            </li>
+            
             <li class="nav-item mt-3 px-3">
                 <hr class="text-secondary opacity-25">
             </li>
-
         </ul>
     </nav>
-
     <!-- =============================================
          3. MAIN CONTENT
          ============================================= -->

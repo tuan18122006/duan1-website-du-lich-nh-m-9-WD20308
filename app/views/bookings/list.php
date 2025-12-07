@@ -1,12 +1,27 @@
 <div class="container-fluid mt-4">
+    <?php
+        // Logic xác định tiêu đề Booking
+        $current_type = $_GET['type'] ?? 0;
+        $title_text = ($current_type == 1) ? "Quản lý Booking Tùy chọn (Yêu cầu thiết kế)" : "Quản lý Booking Mặc định";
+    ?>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="text-primary fw-bold"><i class="bi bi-ticket-perforated me-2"></i>Quản lý Đặt Tour</h2>
+            <h2 class="text-primary fw-bold"><i class="bi bi-ticket-perforated me-2"></i><?= $title_text ?></h2>
             <p class="text-muted">Danh sách các đơn đặt tour từ khách hàng</p>
         </div>
-        <a href="index.php?act=booking_add" class="btn btn-primary shadow-sm">
-            <i class="fas fa-plus me-2"></i> Tạo Booking mới
-        </a>
+        
+        <?php if($current_type == 0): ?>
+            <a href="index.php?act=booking_add" class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus me-2"></i> Tạo Booking mới
+            </a>
+        <?php endif; ?>
+        
+        <?php if($current_type == 1): ?>
+            <a href="index.php?act=booking_add_custom" class="btn btn-success shadow-sm">
+                <i class="fas fa-paint-brush me-2"></i> Tạo Yêu cầu Thiết kế
+            </a>
+        <?php endif; ?>
     </div>
 
     <div class="card shadow border-0 rounded-4">
@@ -46,6 +61,9 @@
                                         <i class="far fa-calendar-alt"></i> 
                                         <?= isset($item['start_date']) ? date('d/m/Y', strtotime($item['start_date'])) : '---' ?>
                                     </small>
+                                    <?php if($current_type == 1): ?>
+                                        <br><span class="badge bg-light text-secondary border">Tour Custom</span>
+                                    <?php endif; ?>
                                 </td>
 
                                 <td class="text-center">
@@ -53,7 +71,13 @@
                                 </td>
 
                                 <td class="fw-bold text-danger">
-                                    <?= number_format($item['total_price']) ?> đ
+                                    <?php 
+                                        if($item['total_price'] == 0 && $current_type == 1) {
+                                            echo '<span class="text-muted fst-italic">Đang báo giá</span>';
+                                        } else {
+                                            echo number_format($item['total_price']) . ' đ';
+                                        }
+                                    ?>
                                 </td>
 
                                 <td>
@@ -75,15 +99,15 @@
                                         <form method="POST" action="index.php?act=booking_detail&id=<?= $item['id'] ?>" class="d-inline-block" onsubmit="return confirm('Xác nhận khách đã thanh toán xong? Trạng thái sẽ chuyển thành Hoàn thành.');">
                                             <input type="hidden" name="action" value="mark_completed">
                                             <button type="submit" class="btn btn-sm btn-success shadow-sm" title="Xác nhận đã giao dịch">
-                                                <i class="fas fa-check-circle"></i> XN Giao dịch
+                                                <i class="fas fa-check-circle"></i> XN
                                             </button>
                                         </form>
                                     <?php endif; ?>
 
                                     <a href="index.php?act=booking_detail&id=<?= $item['id'] ?>" 
-                                       class="btn btn-outline-primary btn-sm ms-1" 
-                                       title="Xem chi tiết">
-                                       <i class="fas fa-eye"></i>
+                                    class="btn btn-outline-primary btn-sm ms-1 shadow-sm" 
+                                    title="Xem chi tiết">
+                                    <i class="fas fa-eye me-1"></i> <span class="fw-bold">Chi tiết</span>
                                     </a>
                                 </td>
                             </tr>

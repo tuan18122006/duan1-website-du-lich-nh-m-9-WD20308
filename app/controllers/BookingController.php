@@ -1,5 +1,6 @@
 <?php
 class BookingController extends Controller {
+    // ... (__construct, index, customList giữ nguyên) ...
     private $bookingModel;
     private $tourModel;
     private $guideModel;
@@ -10,18 +11,22 @@ class BookingController extends Controller {
         $this->guideModel = $this->model('GuideModel'); 
     }
 
-    // Danh sách booking
+    public function customList() {
+        $bookings = $this->bookingModel->getBookingsByType(1);
+        $view_path = './app/views/bookings/custom_booking_list.php';
+        require_once './app/views/layouts/main.php';
+    }
+
     public function index() {
-        $bookings = $this->bookingModel->getAllBookings();
+        $bookings = $this->bookingModel->getBookingsByType(0);
         $view_path = './app/views/bookings/list.php';
         require_once './app/views/layouts/main.php';
     }
 
-    // Tạo booking mới
+    // 1. Booking Tour Thường (Sửa đoạn truyền $data)
     public function add() {
         $tours = $this->tourModel->getAllTour();
         
-        // AJAX: Lấy lịch trình
         if (isset($_GET['ajax_tour_id'])) {
             $schedules = $this->tourModel->getSchedules($_GET['ajax_tour_id']);
             echo json_encode($schedules);
@@ -47,6 +52,7 @@ class BookingController extends Controller {
 
                     $data = [
                         ':tour_id' => $tour_id,
+                        ':schedule_id' => $schedule_id, // QUAN TRỌNG: Thêm dòng này
                         ':customer_name' => $_POST['customer_name'],
                         ':customer_phone' => $_POST['customer_phone'],
                         ':customer_email' => $_POST['customer_email'] ?? '',
@@ -58,9 +64,7 @@ class BookingController extends Controller {
                     ];
 
                     if ($this->bookingModel->createBooking($data)) {
-                        // Cập nhật số lượng đã đặt
                         $this->tourModel->updateScheduleBooked($schedule_id, $people_count);
-                        
                         $_SESSION['success'] = "Tạo booking thành công!";
                         header('Location: index.php?act=booking_list');
                         exit;
@@ -73,7 +77,72 @@ class BookingController extends Controller {
         require_once './app/views/layouts/main.php';
     }
 
-    // Chi tiết Booking & Xử lý trạng thái
+    // 2. Booking Tour Custom (Sửa logic lấy schedule_id)
+    public function addCustom() {
+        $categories = $this->tourModel->getAllCategories();
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // ... (Phần xử lý ảnh giữ nguyên) ...
+            $image_name = "";
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $upload_dir = "assets/uploads/tours/";
+                $safeName = time() . '_' . $_FILES['image']['name'];
+                move_uploaded_file($_FILES['image']['tmp_name'], $upload_dir . $safeName);
+                $image_name = $safeName;
+            }
+
+            $tourData = [
+                ':tour_name' => "Tour thiết kế: " . $_POST['destination'],
+                ':description' => $_POST['description'],
+                ':category_id' => $_POST['category_id'],
+                ':image_url' => $image_name,
+                ':duration_days' => $_POST['duration_days'],
+                ':start_date' => $_POST['start_date'],
+                ':people' => $_POST['people']
+            ];
+            
+            $newTourId = $this->tourModel->createCustomTour($tourData);
+
+            if ($newTourId) {
+                // Tạo Lịch trình và LẤY ID VỀ
+                $scheduleData = [
+                    ':tour_id' => $newTourId,
+                    ':start_date' => $_POST['start_date'],
+                    ':end_date' => date('Y-m-d', strtotime($_POST['start_date'] . ' + ' . $_POST['duration_days'] . ' days')),
+                    ':price' => 0,
+                    ':stock' => $_POST['people'],
+                    ':guide_id' => null // Custom tour chưa có HDV lúc đầu
+                ];
+                
+                // Gọi hàm vừa sửa ở TourModel để lấy ID
+                $newScheduleId = $this->tourModel->addSchedule($scheduleData);
+
+                // Tạo Booking (Truyền schedule_id vừa tạo vào)
+                $bookingData = [
+                    ':tour_id' => $newTourId,
+                    ':schedule_id' => $newScheduleId, // QUAN TRỌNG: Thêm dòng này
+                    ':customer_name' => $_POST['customer_name'],
+                    ':customer_phone' => $_POST['customer_phone'],
+                    ':customer_email' => $_POST['customer_email'],
+                    ':customer_address' => $_POST['customer_address'],
+                    ':people' => $_POST['people'],
+                    ':total_price' => 0,
+                    ':start_date' => $_POST['start_date'],
+                    ':note' => "Yêu cầu đặc biệt: " . $_POST['description']
+                ];
+                
+                $this->bookingModel->createBooking($bookingData);
+                
+                $_SESSION['success'] = "Gửi yêu cầu thiết kế Tour thành công!";
+                header('Location: index.php?act=booking_add_custom'); 
+                exit;
+            }
+        }
+        $view_path = './app/views/bookings/add_custom.php';
+        require_once './app/views/layouts/main.php';
+    }
+
+    // ... (Hàm detail giữ nguyên) ...
     public function detail() {
         $id = $_GET['id'] ?? 0;
         $booking = $this->bookingModel->getBookingById($id);
@@ -84,30 +153,19 @@ class BookingController extends Controller {
             exit;
         }
 
-        // XỬ LÝ POST (Xác nhận, Hủy, Hoàn thành)
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $action = $_POST['action'] ?? '';
 
-            // 1. Xác nhận Booking (Giữ chỗ)
             if ($action == 'confirm') {
                 $this->bookingModel->updateBookingStatus($id, 'Đã xác nhận');
                 $_SESSION['success'] = "Đã xác nhận đơn hàng!";
-            }
-            
-            // 2. Xác nhận Giao dịch xong -> Hoàn thành
-            elseif ($action == 'mark_completed') {
+            } elseif ($action == 'mark_completed') {
                 $this->bookingModel->updateBookingStatus($id, 'Hoàn thành');
                 $_SESSION['success'] = "Giao dịch thành công! Đơn hàng đã hoàn thành.";
-            }
-
-            // 3. Hủy đơn
-            elseif ($action == 'cancel') {
+            } elseif ($action == 'cancel') {
                  $this->bookingModel->updateBookingStatus($id, 'Đã hủy');
-                 // (Tùy chọn: Nếu muốn cộng lại số chỗ trống cho lịch tour thì xử lý thêm ở đây)
                  $_SESSION['success'] = "Đã hủy đơn hàng.";
             }
-
-            // Load lại trang để thấy thay đổi
             header("Location: index.php?act=booking_detail&id=$id");
             exit;
         }

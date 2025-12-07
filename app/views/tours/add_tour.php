@@ -54,12 +54,6 @@
                            value="<?= htmlspecialchars($sticky_data['base_price'] ?? '') ?>">
                 </div>
 
-                <div class="form-group">
-                    <label>Số ngày (*)</label>
-                    <input type="number" name="duration_days" class="form-control" required min="1"
-                           value="<?= htmlspecialchars($sticky_data['duration_days'] ?? '1') ?>">
-                </div>
-
                 <!-- TRẠNG THÁI -->
                 <div class="form-group">
                     <label>Trạng thái (*)</label>
@@ -69,54 +63,14 @@
                     </select>
                 </div>
 
-                <!-- CHỌN HƯỚNG DẪN VIÊN -->
-            <div class="form-group">
-                <label>Hướng dẫn viên phụ trách (Tùy chọn)</label>
-                <select name="guide_id" class="form-control">
-                    <option value="">-- Chưa chỉ định --</option>
-                    <?php if (!empty($guides)): ?>
-                        <?php foreach ($guides as $g): ?>
-                            <option value="<?= $g['guide_id'] ?>" 
-                                <?php 
-                                    // Logic selected cho Update
-                                    if (isset($tour['guide_id']) && $tour['guide_id'] == $g['guide_id']) echo 'selected';
-                                    // Logic selected cho Add (nếu form lỗi load lại)
-                                    elseif (isset($sticky_data['guide_id']) && $sticky_data['guide_id'] == $g['guide_id']) echo 'selected';
-                                ?>
-                            >
-                                <?= htmlspecialchars($g['full_name']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </select>
-            </div>
-
             <!-- CỘT PHẢI -->
             <div>
-                <div class="form-group">
-                    <label>Ngày Khởi hành</label>
-                    <input type="date" name="start_date" class="form-control"
-                           value="<?= htmlspecialchars($sticky_data['start_date'] ?? '') ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Ngày Kết thúc</label>
-                    <input type="date" name="end_date" class="form-control"
-                           value="<?= htmlspecialchars($sticky_data['end_date'] ?? '') ?>">
-                </div>
-
                 <div class="form-group">
                     <label>Nhà cung cấp</label>
                     <input type="text" name="supplier" class="form-control"
                            value="<?= htmlspecialchars($sticky_data['supplier'] ?? '') ?>">
                 </div>
-
-                <div class="form-group">
-                    <label>Số lượng khách tối đa</label>
-                    <input type="number" name="people" class="form-control" min="1"
-                           value="<?= htmlspecialchars($sticky_data['people'] ?? '0') ?>">
-                </div>
-
+                
                 <!-- ẢNH ĐẠI DIỆN -->
                 <div class="form-group">
                     <label>Ảnh đại diện (*)</label>

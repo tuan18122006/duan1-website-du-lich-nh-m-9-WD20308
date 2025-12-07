@@ -48,11 +48,6 @@
                     <input type="number" name="base_price" class="form-control" required value="<?= $tour['base_price'] ?>">
                 </div>
 
-                <div class="form-group">
-                    <label>Số ngày (*)</label>
-                    <input type="number" name="duration_days" class="form-control" required value="<?= $tour['duration_days'] ?>">
-                </div>
-
                 <!-- TRẠNG THÁI -->
                 <div class="form-group">
                     <label>Trạng thái (*)</label>
@@ -62,68 +57,33 @@
                     </select>
                 </div>
 
-                <!-- CHỌN HƯỚNG DẪN VIÊN -->
-                <div class="form-group">
-                    <label>Hướng dẫn viên phụ trách</label>
-                    <select name="guide_id" class="form-control">
-                        <option value="">-- Chưa chỉ định --</option>
-                        <?php if (!empty($guides)): ?>
-                            <?php foreach ($guides as $g): ?>
-                                <option value="<?= $g['guide_id'] ?>" 
-                                    <?= (isset($tour['guide_id']) && $tour['guide_id'] == $g['guide_id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($g['full_name']) ?> (<?= $g['phone'] ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
-                </div>
-            </div>
 
             <!-- CỘT PHẢI -->
             <div>
-                <div class="form-group">
-                    <label>Ngày Khởi hành</label>
-                    <input type="date" name="start_date" class="form-control" 
-                           value="<?= !empty($tour['start_date']) ? date('Y-m-d', strtotime($tour['start_date'])) : '' ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Ngày Kết thúc</label>
-                    <input type="date" name="end_date" class="form-control"
-                           value="<?= !empty($tour['end_date']) ? date('Y-m-d', strtotime($tour['end_date'])) : '' ?>">
-                </div>
-
                 <div class="form-group">
                     <label>Nhà cung cấp</label>
                     <input type="text" name="supplier" class="form-control" value="<?= htmlspecialchars($tour['supplier']) ?>">
                 </div>
 
-                <div class="form-group">
-                    <label>Số lượng khách tối đa</label>
-                    <input type="number" name="people" class="form-control" value="<?= $tour['people'] ?>">
-                </div>
-
                 <!-- ẢNH ĐẠI DIỆN -->
-            <div class="form-group">
-                <label>Hướng dẫn viên phụ trách (Tùy chọn)</label>
-                <select name="guide_id" class="form-control">
-                    <option value="">-- Chưa chỉ định --</option>
-                    <?php if (!empty($guides)): ?>
-                        <?php foreach ($guides as $g): ?>
-                            <option value="<?= $g['guide_id'] ?>" 
-                                <?php 
-                                    // Logic selected cho Update
-                                    if (isset($tour['guide_id']) && $tour['guide_id'] == $g['guide_id']) echo 'selected';
-                                    // Logic selected cho Add (nếu form lỗi load lại)
-                                    elseif (isset($sticky_data['guide_id']) && $sticky_data['guide_id'] == $g['guide_id']) echo 'selected';
-                                ?>
-                            >
-                                <?= htmlspecialchars($g['full_name']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </select>
-            </div>
+                <div class="image-upload-group">
+                    <div class="image-preview-area">
+                        <?php
+                        $imgSrc = !empty($tour['image_url']) ? "assets/uploads/tours/" . htmlspecialchars($tour['image_url']) : "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+                        $displayStyle = !empty($tour['image_url']) ? "block" : "none";
+                        ?>
+                        <img id="imagePreviewUpdate" src="<?= $imgSrc ?>" alt="Preview Ảnh" style="display: <?= $displayStyle ?>;">
+                    </div>
+
+                    <div class="file-input-wrapper">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="imageUploadUpdate">Hình ảnh Tour (Chọn nếu muốn thay đổi)</label>
+                            <input type="file" name="image" id="imageUploadUpdate">
+                            <input type="hidden" name="old_image_url" value="<?= htmlspecialchars($tour['image_url'] ?? '') ?>">
+                            <small>Định dạng: JPEG, PNG. Kích thước 150x150px được khuyến nghị.</small>
+                        </div>
+                    </div>
+                </div>
 
         <!-- PHẦN FULL WIDTH -->
         <div class="form-group">

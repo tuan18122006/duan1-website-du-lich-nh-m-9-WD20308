@@ -1,9 +1,19 @@
 <div class="container-fluid mt-4">
+    <?php
+        // Logic xác định tiêu đề và loại tour đang xem
+        $current_type = $_GET['type'] ?? 0;
+        $title_text = ($current_type == 1) ? "Quản lý Tour Tùy chọn (Khách thiết kế)" : "Quản lý Tour Mặc định";
+        $badge_color = ($current_type == 1) ? "text-success" : "text-primary";
+    ?>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary fw-bold">Quản lý Tour</h2>
-        <a href="index.php?act=add_tour" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Thêm mới
-        </a>
+        <h2 class="<?= $badge_color ?> fw-bold"><?= $title_text ?></h2>
+        
+        <?php if($current_type == 0): ?>
+            <a href="index.php?act=add_tour" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Thêm mới
+            </a>
+        <?php endif; ?>
     </div>
 
     <div class="card mb-4 border-0 shadow-sm">
@@ -33,7 +43,9 @@
                         <th class="ps-3">Tên Tour</th>
                         <th>Ảnh</th>
                         <th>Danh mục</th>
-                        <th>Giá cơ bản</th>
+                        <th>
+                            <?= ($current_type == 1) ? 'Ngân sách/Giá' : 'Giá cơ bản' ?>
+                        </th>
                         <th>Trạng thái</th>
                         <th class="text-end pe-3">Hành động</th>
                     </tr>
@@ -47,13 +59,22 @@
                                         <?= htmlspecialchars($tour['tour_name']) ?>
                                     </a>
                                     <div class="small text-muted">ID: #<?= $tour['tour_id'] ?></div>
+                                    <?php if($current_type == 1): ?>
+                                        <span class="badge bg-warning text-dark" style="font-size: 0.7rem">Custom Request</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <img src="assets/uploads/tours/<?= htmlspecialchars($tour['image_url']) ?>" 
-                                         style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                    <?php 
+                                        $img = !empty($tour['image_url']) ? "assets/uploads/tours/".$tour['image_url'] : "assets/images/no-image.jpg";
+                                    ?>
+                                    <img src="<?= $img ?>" 
+                                         style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;" 
+                                         onerror="this.src='https://via.placeholder.com/60x40'">
                                 </td>
                                 <td><?= htmlspecialchars($tour['category_name'] ?? '---') ?></td>
-                                <td class="text-danger fw-bold"><?= number_format($tour['base_price']) ?> đ</td>
+                                <td class="text-danger fw-bold">
+                                    <?= ($tour['base_price'] > 0) ? number_format($tour['base_price']) . ' đ' : 'Chưa báo giá' ?>
+                                </td>
                                 <td>
                                     <?php if($tour['status'] == 1): ?>
                                         <span class="badge bg-success">Đang mở</span>
@@ -65,23 +86,23 @@
                                     <a href="index.php?act=tour_schedules&id=<?= $tour['tour_id'] ?>" 
                                        class="btn btn-info btn-sm text-white me-1" 
                                        title="Quản lý lịch khởi hành">
-                                       <i class="fas fa-calendar-alt"></i> QL Lịch
+                                       <i class="fas fa-calendar-alt"></i>
                                     </a>
 
                                     <a href="index.php?act=tour_bookings&id=<?= $tour['tour_id'] ?>" 
                                        class="btn btn-primary btn-sm me-1" 
                                        title="Xem danh sách khách">
-                                       <i class="fas fa-users"></i> Khách
+                                       <i class="fas fa-users"></i>
                                     </a>
 
                                     <a href="index.php?act=update_tour&id=<?= $tour['tour_id'] ?>" 
-                                       class="btn btn-warning btn-sm me-1">
+                                       class="btn btn-warning btn-sm me-1" title="Sửa tour">
                                        <i class="fas fa-edit"></i>
                                     </a>
                                     
                                     <a href="index.php?act=delete_tour&id=<?= $tour['tour_id'] ?>"
                                        onclick="return confirm('Bạn có chắc muốn xóa tour này?')"
-                                       class="btn btn-danger btn-sm">
+                                       class="btn btn-danger btn-sm" title="Xóa tour">
                                        <i class="fas fa-trash"></i>
                                     </a>
                                 </td>
@@ -100,6 +121,9 @@
 
 <script>
     function applyFilter(filterValue) {
-        window.location.href = 'index.php?act=tour_list&category_filter=' + filterValue;
+        // Giữ lại tham số type khi lọc
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type') || 0;
+        window.location.href = `index.php?act=tour_list&type=${type}&category_filter=${filterValue}`;
     }
 </script>
