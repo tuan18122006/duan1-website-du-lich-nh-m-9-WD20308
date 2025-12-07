@@ -174,7 +174,7 @@ public function dashboard() {
 
         // 3. CẤU HÌNH VIEW (SỬA ĐOẠN NÀY)
         // Dùng đường dẫn chuẩn sau khi đã đổi tên ở Bước 1
-        $path = "./app/views/guide/dashboard_guide.php"; 
+        $path = "./app/views/dashboard/dashboard_guide.php"; 
 
         // Kiểm tra file tồn tại chưa
         if (!file_exists($path)) {
