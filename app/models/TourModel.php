@@ -2,16 +2,13 @@
 
 class TourModel extends Model
 {
-    // 1. Lấy danh sách tất cả Tour (JOIN với bảng tour_categories)
+    // 1. Lấy danh sách tất cả Tour
     public function getAllTour()
     {
-        $sql = "SELECT 
-                    t.*, 
-                    c.category_name AS category_name 
+        $sql = "SELECT t.*, c.category_name AS category_name 
                 FROM tours t
                 LEFT JOIN tour_categories c ON t.category_id = c.category_id
                 ORDER BY t.tour_id DESC";
-
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -20,20 +17,17 @@ class TourModel extends Model
     // 2. Lấy Tour theo Category
     public function getToursByCategoryId($category_id)
     {
-        $sql = "SELECT 
-                    t.*, 
-                    c.category_name AS category_name 
+        $sql = "SELECT t.*, c.category_name AS category_name 
                 FROM tours t
                 LEFT JOIN tour_categories c ON t.category_id = c.category_id
                 WHERE t.category_id = :category_id
                 ORDER BY t.tour_id DESC";
-
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':category_id' => $category_id]);
         return $stmt->fetchAll();
     }
 
-    // 3. Lấy danh sách Category (Cho Dropdown)
+    // 3. Lấy danh sách Category
     public function getAllCategories()
     {
         $sql = "SELECT * FROM tour_categories ORDER BY category_id DESC";
@@ -42,15 +36,15 @@ class TourModel extends Model
         return $stmt->fetchAll();
     }
 
-    // 4. Thêm Tour Mới (Đã cập nhật thêm guide_id theo DB mới)
+    // 4. Thêm Tour Mới (ĐÃ BỎ guide_id)
     public function addTourInfo($data)
     {
         $sql = "INSERT INTO tours (
                     category_id, tour_name, short_description, description, duration_days, 
-                    base_price, image_url, end_date, start_date, supplier, policy, status, people, guide_id
+                    base_price, image_url, end_date, start_date, supplier, policy, status, people
                 ) VALUES (
                     :category_id, :tour_name, :short_description, :description, :duration_days,
-                    :base_price, :image_url, :end_date, :start_date, :supplier, :policy, :status, :people, :guide_id
+                    :base_price, :image_url, :end_date, :start_date, :supplier, :policy, :status, :people
                 )";
 
         $stmt = $this->db->prepare($sql);
@@ -68,8 +62,7 @@ class TourModel extends Model
             ':supplier' => $data['supplier'],
             ':policy' => $data['policy'],
             ':status' => $data['status'],
-            ':people' => $data['people'],
-            ':guide_id' => $data['guide_id'] ?? null // Thêm guide_id (có thể null)
+            ':people' => $data['people']
         ]);
     }
 
@@ -90,10 +83,9 @@ class TourModel extends Model
         return $stmt->fetch();
     }
 
-    // 7. Cập nhật Tour (Đã cập nhật thêm guide_id theo DB mới)
+    // 7. Cập nhật Tour (ĐÃ BỎ guide_id)
     public function updateTour($data)
     {
-        // Sử dụng tên cột chính xác theo Database bạn đã tạo
         $sql = "UPDATE tours SET 
                 category_id = :category_id,
                 tour_name = :tour_name,          
@@ -107,8 +99,7 @@ class TourModel extends Model
                 supplier = :supplier,
                 policy = :policy,
                 status = :status,           
-                people = :people,
-                guide_id = :guide_id
+                people = :people
                 WHERE tour_id = :tour_id";
 
         $stmt = $this->db->prepare($sql);
@@ -127,7 +118,6 @@ class TourModel extends Model
             ':policy' => $data['policy'],
             ':status' => $data['status'],
             ':people' => $data['people'],
-            ':guide_id' => $data['guide_id'] ?? null,
             ':tour_id' => $data['tour_id']
         ]);
     }
@@ -140,77 +130,48 @@ class TourModel extends Model
         $stmt->execute();
         return $stmt->fetchAll();
     }
-    public function getToursWithBookingStatus()
-    {
-        $sql = "SELECT 
-                t.*,
-                t.people as max_people,
-                IFNULL(SUM(b.people), 0) as current_people,
-                COUNT(b.id) as total_bookings
-            FROM tours t
-            LEFT JOIN bookings b ON t.tour_id = b.tour_id AND b.status != 'Đã hủy'
-            GROUP BY t.tour_id
-            ORDER BY t.start_date DESC";
 
-        return $this->db->prepare($sql)->fetchAll();
-    }
-
-    public function getToursByGuide($guide_id)
-    {
-        $sql = "SELECT * FROM tours WHERE guide_id = :guide_id";
+    // --- CÁC HÀM KHÁC GIỮ NGUYÊN (Quản lý lịch, Custom Tour, Báo giá...) ---
+    
+    public function getHistoryTours() {
+        $sql = "SELECT t.*, c.category_name 
+                FROM tours t
+                LEFT JOIN tour_categories c ON t.category_id = c.category_id
+                WHERE t.status IN (0, 3) 
+                ORDER BY t.end_date DESC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['guide_id' => $guide_id]);
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 
-
-
-
-    // Hàm cập nhật trạng thái hoạt động của Tour (Kích hoạt/Hủy)
-    public function updateTourStatus($tour_id, $status)
-    {
-        // status: 1=Đang nhận khách, 2=Đã đủ người/Hoạt động, 3=Đã xong, 0=Hủy
-        $sql = "UPDATE tours SET status = :status WHERE tour_id = :tour_id";
-        return $this->db->prepare($sql)->execute([':status' => $status, ':tour_id' => $tour_id]);
-    }
-
-// THÊM: Lấy danh sách Tour lịch sử (Đã xong hoặc Đã hủy)
-public function getHistoryTours() {
-    $sql = "SELECT 
-                t.*, 
-                c.category_name 
-            FROM tours t
-            LEFT JOIN tour_categories c ON t.category_id = c.category_id
-            WHERE t.status IN (0, 3) -- 0: Hủy, 3: Hoàn thành
-            ORDER BY t.end_date DESC";
-    
-    $stmt = $this->db->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll();
-// --- PHẦN MỚI: QUẢN LÝ LỊCH TOUR ---
-}
-    // 1. Lấy danh sách lịch của 1 tour
+    // QUẢN LÝ LỊCH TOUR
     public function getSchedules($tour_id) {
-        $sql = "SELECT * FROM tour_schedules WHERE tour_id = :tour_id ORDER BY start_date ASC";
+        $sql = "SELECT s.*, g.full_name as guide_name 
+                FROM tour_schedules s
+                LEFT JOIN guides g ON s.guide_id = g.guide_id
+                WHERE s.tour_id = :tour_id 
+                ORDER BY s.start_date ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':tour_id' => $tour_id]);
         return $stmt->fetchAll();
     }
 
-    // 2. Thêm lịch mới
     public function addSchedule($data) {
-        $sql = "INSERT INTO tour_schedules (tour_id, start_date, end_date, price, stock) 
-                VALUES (:tour_id, :start_date, :end_date, :price, :stock)";
-        return $this->db->prepare($sql)->execute($data);
-    }
+            $sql = "INSERT INTO tour_schedules (tour_id, start_date, end_date, price, stock, guide_id) 
+                    VALUES (:tour_id, :start_date, :end_date, :price, :stock, :guide_id)";
+            
+            $stmt = $this->db->prepare($sql);
+            if ($stmt->execute($data)) {
+                return $this->db->lastInsertId(); // TRẢ VỀ ID LỊCH TRÌNH VỪA TẠO
+            }
+            return false;
+        }
 
-    // 3. Xóa lịch
     public function deleteSchedule($id) {
         $sql = "DELETE FROM tour_schedules WHERE schedule_id = :id";
         return $this->db->prepare($sql)->execute([':id' => $id]);
     }
 
-    // 4. Lấy thông tin 1 lịch cụ thể (để booking dùng)
     public function getScheduleById($id) {
         $sql = "SELECT * FROM tour_schedules WHERE schedule_id = :id";
         $stmt = $this->db->prepare($sql);
@@ -218,9 +179,67 @@ public function getHistoryTours() {
         return $stmt->fetch();
     }
 
-    // 5. Cập nhật số lượng đã đặt trong bảng schedules
     public function updateScheduleBooked($schedule_id, $people) {
         $sql = "UPDATE tour_schedules SET booked = booked + :people WHERE schedule_id = :schedule_id";
         return $this->db->prepare($sql)->execute([':people' => $people, ':schedule_id' => $schedule_id]);
     }
+
+    // TOUR TÙY CHỌN (CUSTOM)
+    public function getToursByType($type = 0) {
+        $sql = "SELECT t.*, c.category_name 
+                FROM tours t
+                LEFT JOIN tour_categories c ON t.category_id = c.category_id
+                WHERE t.tour_type = :type
+                ORDER BY t.tour_id DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':type' => $type]);
+        return $stmt->fetchAll();
+    }
+
+    public function createCustomTour($data) {
+        $sql = "INSERT INTO tours (
+                    tour_name, description, category_id, image_url, 
+                    duration_days, start_date, tour_type, status, base_price, people
+                ) VALUES (
+                    :tour_name, :description, :category_id, :image_url,
+                    :duration_days, :start_date, 1, 1, 0, :people
+                )";
+        $stmt = $this->db->prepare($sql);
+        if ($stmt->execute($data)) {
+            return $this->db->lastInsertId(); 
+        }
+        return false;
+    }
+
+    // HÀM BÁO GIÁ
+    public function updateQuote($id, $price, $guide_id, $policy) {
+        // Vẫn cập nhật guide_id vào tours cho tour Custom (để lưu HDV chính)
+        $sqlTour = "UPDATE tours SET base_price = :price, guide_id = :guide_id, policy = :policy, status = 1 WHERE tour_id = :id";
+        $this->db->prepare($sqlTour)->execute([
+            ':price' => $price, 
+            ':guide_id' => $guide_id, 
+            ':policy' => $policy, 
+            ':id' => $id
+        ]);
+
+        $sqlSchedule = "UPDATE tour_schedules SET price = :price WHERE tour_id = :id";
+        $this->db->prepare($sqlSchedule)->execute([':price' => $price, ':id' => $id]);
+
+        $sqlBooking = "UPDATE bookings SET total_price = people * :price, status = 'Đã xác nhận' WHERE tour_id = :id";
+        $this->db->prepare($sqlBooking)->execute([':price' => $price, ':id' => $id]);
+        
+        return true;
+    }
+    
+    // Hàm update status tour (Kích hoạt/Kết thúc)
+    public function updateTourStatus($tour_id, $status) {
+        $sql = "UPDATE tours SET status = :status WHERE tour_id = :tour_id";
+        return $this->db->prepare($sql)->execute([':status' => $status, ':tour_id' => $tour_id]);
+    }
+    public function getToursByGuide($guide_id) {
+    $sql = "SELECT * FROM tours WHERE guide_id = :guide_id ORDER BY tour_id DESC";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([':guide_id' => $guide_id]);
+    return $stmt->fetchAll();
+}
 }

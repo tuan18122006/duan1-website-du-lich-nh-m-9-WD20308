@@ -75,40 +75,6 @@
                     ?>
                 </span>
             </div>
-
-            <div class="info-row">
-                <span class="info-label">Hướng dẫn viên:</span>
-                <span class="info-value">
-                    <?php 
-                        $guideName = 'Chưa chỉ định';
-                        if (!empty($tour['guide_id'])) {
-                            foreach($guides as $g) {
-                                if($g['guide_id'] == $tour['guide_id']) {
-                                    $guideName = $g['full_name'];
-                                    break;
-                                }
-                            }
-                        }
-                        echo htmlspecialchars($guideName);
-                    ?>
-                </span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Ngày đi:</span>
-                <span class="info-value"><?= !empty($tour['start_date']) ? date('d/m/Y', strtotime($tour['start_date'])) : '---' ?></span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Ngày về:</span>
-                <span class="info-value"><?= !empty($tour['end_date']) ? date('d/m/Y', strtotime($tour['end_date'])) : '---' ?></span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Thời gian:</span>
-                <span class="info-value"><?= $tour['duration_days'] ?> ngày</span>
-            </div>
-
             <div class="info-row">
                 <span class="info-label">Nhà cung cấp:</span>
                 <span class="info-value"><?= htmlspecialchars($tour['supplier']) ?></span>

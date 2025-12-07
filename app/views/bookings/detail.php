@@ -1,7 +1,19 @@
+<?php
+    // LOGIC TO DETERMINE BACK LINK
+    // If it's a custom tour (type=1), go back to custom booking list
+    // Otherwise, go back to standard booking list
+    $back_act = (isset($booking['tour_type']) && $booking['tour_type'] == 1) 
+                ? 'custom_booking_list' 
+                : 'booking_list';
+?>
+
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold text-primary">Chi tiết Đơn hàng #<?= $booking['id'] ?></h3>
-        <a href="index.php?act=booking_list" class="btn btn-secondary">Quay lại danh sách</a>
+        
+        <a href="index.php?act=<?= $back_act ?>" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Quay lại danh sách
+        </a>
     </div>
 
     <div class="row">
@@ -30,6 +42,28 @@
                             <h5 class="text-primary mt-1"><?= htmlspecialchars($booking['tour_name']) ?></h5>
                         </div>
                     </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <strong><i class="fas fa-user-tie me-1"></i> Hướng dẫn viên phụ trách:</strong>
+                            <div class="mt-1">
+                                <?php if (isset($booking['guide_name']) && $booking['guide_name'] !== 'Chưa phân công'): ?>
+                                    <span class="text-success fw-bold fs-5">
+                                        <?= htmlspecialchars($booking['guide_name']) ?>
+                                    </span>
+                                    <?php if (!empty($booking['guide_phone'])): ?>
+                                        <span class="text-muted ms-2">
+                                            <i class="fas fa-phone-alt me-1"></i> <?= htmlspecialchars($booking['guide_phone']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Chưa phân công</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
 
                     <div class="row mb-3">
                         <div class="col-md-6">

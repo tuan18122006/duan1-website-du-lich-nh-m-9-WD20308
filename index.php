@@ -29,7 +29,17 @@ require_once 'app/controllers/BookingController.php';
 
 
 // 5. Lấy tham số act từ URL (mặc định là trang chủ)
-$act = $_GET['act'] ?? 'login';
+if (isset($_GET['act'])) {
+    $act = $_GET['act'];
+} else {
+    // Nếu URL không có ?act=...
+    // Kiểm tra xem có session user (đã đăng nhập) chưa?
+    if (isset($_SESSION['user'])) {
+        $act = 'dashboard'; // Đã đăng nhập -> Về trang chủ/thống kê
+    } else {
+        $act = 'login';     // Chưa đăng nhập -> Về trang login
+    }
+}
 
 // 6. Điều hướng bằng Switch (Dễ dùng hơn Match)
 switch ($act) {
@@ -123,6 +133,15 @@ switch ($act) {
         $tourController = new TourController();
         $tourController->manageSchedules();
         break;
+// --- 1. QUẢN LÝ TOUR CHUẨN (Mặc định) ---
+    case 'tour_list':
+        (new TourController())->showTour(); // Chỉ hiện tour chuẩn
+        break;
+        // --- TRONG PHẦN QUẢN LÝ TOUR ---
+    case 'tour_quote':
+        (new TourController())->quoteTour(); // Hàm xử lý báo giá
+        break;
+
         
             // === QUẢN LÝ HDV ===
     case 'list_guide':
@@ -165,6 +184,22 @@ switch ($act) {
         (new BookingController())->detail();
         break;
 
+
+    // --- 2. QUẢN LÝ YÊU CẦU TOUR (Custom - MỚI) ---
+    case 'custom_tour_list':
+        (new TourController())->showCustomTours(); // Hàm mới: Chỉ hiện tour khách đặt
+        break;
+
+    // --- 3. BOOKING CHUẨN ---
+    case 'booking_list':
+        (new BookingController())->index(); // Chỉ hiện booking chuẩn
+        break;
+    case 'booking_add_custom':
+        (new BookingController())->addCustom();
+        break;
+    case 'custom_booking_list':
+        (new BookingController())->customList(); // Hàm mới
+        break;
     default:
         echo "<h2>Lỗi 404: Trang không tồn tại!</h2>";
         break;
