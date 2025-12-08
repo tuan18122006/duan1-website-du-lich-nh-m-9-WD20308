@@ -24,29 +24,34 @@ require_once 'app/controllers/DashboardController.php';
 require_once 'app/controllers/GuideController.php';
 require_once 'app/controllers/LoginController.php';
 require_once 'app/controllers/BookingController.php';
+require_once 'app/controllers/WelcomeController.php';
+
 
 
 // 5. LẤY THAM SỐ ACT TỪ URL
 if (isset($_GET['act'])) {
     $act = $_GET['act'];
 } else {
-    // Nếu URL không có ?act=...
-    if (isset($_SESSION['user'])) {
-        // Nếu là HDV -> về trang dashboard HDV
-        if ($_SESSION['user']['role'] == 2) {
-            $act = 'guide_home';
-        } else {
-            // Mặc định Admin -> dashboard chung
-            $act = 'dashboard'; 
-        }
+
+    // 🔹 Nếu chưa có SESSION và chưa có act => vào trang welcome
+    if (!isset($_SESSION['user'])) {
+        $act = 'welcome';   // Trang đầu tiên khi chạy website
     } else {
-        $act = 'login';     // Chưa đăng nhập -> Về trang login
+
+        // 🔹 Nếu đã đăng nhập -> chuyển theo role
+        if ($_SESSION['user']['role'] == 2) {
+            $act = 'guide_home';    // HDV
+        } else {
+            $act = 'dashboard';     // Admin
+        }
     }
 }
 
 // 6. ĐIỀU HƯỚNG ROUTER
 switch ($act) {
-
+   case 'welcome':
+        (new WelcomeController())->index();
+    break;
     // ===========================
     // 1. AUTHENTICATION (Đăng nhập/Xuất)
     // ===========================

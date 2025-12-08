@@ -220,7 +220,7 @@ public function dashboard() {
         $passengers = $bookingModel->getPassengersBySchedule($schedule_id);
 
         // Gọi View riêng cho HDV
-        $view_path = "./app/views/guide/passenger_list.php"; 
+        $view_path = "./app/views/guide/passenger_list.php";
         require_once "./app/views/layouts/guideHeader.php"; 
     }
 }
