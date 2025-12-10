@@ -24,6 +24,7 @@ require_once 'app/controllers/DashboardController.php';
 require_once 'app/controllers/GuideController.php';
 require_once 'app/controllers/LoginController.php';
 require_once 'app/controllers/BookingController.php';
+require_once 'app/controllers/OperationController.php';
 
 
 // 5. LẤY THAM SỐ ACT TỪ URL
@@ -140,6 +141,19 @@ switch ($act) {
     // Booking cho tour thiết kế
     case 'booking_add_custom':  (new BookingController())->addCustom(); break;
     case 'custom_booking_list': (new BookingController())->customList(); break;
+
+
+
+    // ... Bên trong switch($act) ...
+
+
+
+    case 'hr_management':       (new OperationController())->hrManagement(); break;
+    case 'departure_management':(new OperationController())->departureManagement(); break;
+    case 'checkin_overview':    (new OperationController())->checkinOverview(); break;
+
+    // --- GUIDE ACTIONS ---
+    case 'guide_attendance':    (new GuideController())->attendance(); break;
 
     // ===========================
     // 8. DEFAULT (404)

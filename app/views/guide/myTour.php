@@ -28,7 +28,6 @@
                                 </td>
                                 <td>
                                     <?php 
-                                        $status = $tour['status'];
                                         // Kiểm tra ngày để hiện trạng thái chính xác hơn
                                         $now = time();
                                         $start = strtotime($tour['schedule_start']);
@@ -44,10 +43,17 @@
                                     ?>
                                 </td>
                                 <td>
-                                    <a href="index.php?act=guide_passenger_list&id=<?= $tour['tour_id'] ?>&schedule_id=<?= $tour['schedule_id'] ?>"  
-                                       class="btn btn-primary btn-sm rounded-pill px-3">
-                                       <i class="bi bi-people-fill me-1"></i> Xem khách
-                                    </a>
+                                    <div class="d-flex flex-column gap-2">
+                                        <a href="index.php?act=guide_passenger_list&id=<?= $tour['tour_id'] ?>&schedule_id=<?= $tour['schedule_id'] ?? 0 ?>"  
+                                           class="btn btn-primary btn-sm rounded-pill px-3 text-start">
+                                           <i class="bi bi-people-fill me-2"></i>Xem khách
+                                        </a>
+                                        
+                                        <a href="index.php?act=guide_attendance&id=<?= $tour['tour_id'] ?>&schedule_id=<?= $tour['schedule_id'] ?? 0 ?>" 
+                                           class="btn btn-success btn-sm rounded-pill px-3 text-start">
+                                           <i class="fas fa-check-square me-2"></i>Điểm danh
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

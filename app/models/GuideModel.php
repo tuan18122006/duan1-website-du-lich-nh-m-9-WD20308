@@ -254,4 +254,9 @@ class GuideModel extends Model
             'upcoming_count' => $this->db->prepare($sqlUpcoming)->execute([':gid'=>$guide_id]) ? $this->db->prepare($sqlUpcoming)->fetchColumn() : 0,
         ];
     }
+    // Thêm vào class GuideModel
+public function updateWorkStatus($guide_id, $status) {
+    $sql = "UPDATE guides SET work_status = :status WHERE guide_id = :id";
+    return $this->db->prepare($sql)->execute([':status' => $status, ':id' => $guide_id]);
+}
 }

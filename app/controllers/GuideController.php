@@ -220,7 +220,52 @@ public function dashboard() {
         $passengers = $bookingModel->getPassengersBySchedule($schedule_id);
 
         // Gọi View riêng cho HDV
-        $view_path = "./app/views/guide/passenger_list.php"; 
+        $view_path = "./app/views/guide/passenger_list.php";
         require_once "./app/views/layouts/guideHeader.php"; 
     }
+    // Thêm vào GuideController.php
+
+// ... (Các hàm khác giữ nguyên) ...
+
+    // 11. TRANG ĐIỂM DANH (Dành cho HDV)
+    public function attendance() {
+        // Kiểm tra quyền HDV
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 2) {
+            header("Location: index.php"); exit;
+        }
+
+        $schedule_id = $_GET['schedule_id'] ?? 0;
+        $tour_id = $_GET['id'] ?? 0;
+        
+        $bookingModel = $this->model('BookingModel');
+
+        // --- XỬ LÝ KHI BẤM NÚT LƯU ---
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Bước 1: Reset toàn bộ khách trong lịch này về trạng thái "Chưa đến" (0)
+            // Lý do: Để xử lý trường hợp bỏ tick (bỏ chọn) một khách đã điểm danh trước đó.
+            $bookingModel->resetCheckinForSchedule($schedule_id);
+
+            // Bước 2: Cập nhật những người được tick chọn thành "Có mặt" (1)
+            if (isset($_POST['checked_passengers']) && is_array($_POST['checked_passengers'])) {
+                foreach ($_POST['checked_passengers'] as $passenger_id) {
+                    $bookingModel->updatePassengerCheckin($passenger_id, 1);
+                }
+            }
+            
+            $_SESSION['success'] = "Cập nhật điểm danh thành công!";
+            // Load lại trang để thấy kết quả
+            header("Location: index.php?act=guide_attendance&id=$tour_id&schedule_id=$schedule_id");
+            exit;
+        }
+
+        // --- HIỂN THỊ DỮ LIỆU ---
+        $tour = $this->tourModel->getTourById($tour_id);
+        
+        // Gọi hàm mới vừa viết ở Model
+        $passengerList = $bookingModel->getPassengersByScheduleWithCheckin($schedule_id);
+
+        $view_path = "./app/views/guide/attendance.php";
+        require_once "./app/views/layouts/guideHeader.php";
+    }
+
 }

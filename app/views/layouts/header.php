@@ -322,7 +322,23 @@
                     </ul>
                 </div>
             </li>
-            
+            <li class="nav-item">
+                <a class="nav-link <?= ($act == 'hr_management') ? 'active' : '' ?>" href="index.php?act=hr_management">
+                    <i class="fas fa-users-cog me-2"></i> Quản lý Nhân sự
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link <?= ($act == 'departure_management') ? 'active' : '' ?>" href="index.php?act=departure_management">
+                    <i class="fas fa-plane-departure me-2"></i> Quản lý Khởi hành
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link <?= ($act == 'checkin_overview') ? 'active' : '' ?>" href="index.php?act=checkin_overview">
+                    <i class="fas fa-clipboard-check me-2"></i> QL Đoàn & Check-in
+                </a>
+            </li>
             <li class="nav-item mt-3 px-3">
                 <hr class="text-secondary opacity-25">
             </li>

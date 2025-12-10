@@ -262,8 +262,9 @@ public function getToursByType($type = 0) {
         return $this->db->prepare($sql)->fetchAll();
     }
 
-    public function getToursByGuide($guide_id) {
-        $sql = "SELECT DISTINCT t.*, s.start_date as schedule_start, s.end_date as schedule_end
+public function getToursByGuide($guide_id) {
+        // ĐÃ THÊM: s.schedule_id vào câu SELECT
+        $sql = "SELECT DISTINCT t.*, s.schedule_id, s.start_date as schedule_start, s.end_date as schedule_end
                 FROM tours t
                 JOIN tour_schedules s ON t.tour_id = s.tour_id
                 WHERE s.guide_id = :guide_id
@@ -272,5 +273,20 @@ public function getToursByType($type = 0) {
         $stmt->execute([':guide_id' => $guide_id]);
         return $stmt->fetchAll();
     }
+    // Thêm vào class TourModel
+public function getAllSchedulesWithDetails() {
+    $sql = "SELECT s.*, t.tour_name, t.image_url, g.full_name as guide_name,
+            (SELECT COUNT(*) FROM bookings b WHERE b.schedule_id = s.schedule_id AND b.status != 'Đã hủy') as total_bookings
+            FROM tour_schedules s
+            JOIN tours t ON s.tour_id = t.tour_id
+            LEFT JOIN guides g ON s.guide_id = g.guide_id
+            ORDER BY s.start_date ASC";
+    return $this->db->query($sql)->fetchAll();
+}
+
+public function updateMeetingPoint($schedule_id, $point) {
+    $sql = "UPDATE tour_schedules SET meeting_point = :point WHERE schedule_id = :id";
+    return $this->db->prepare($sql)->execute([':point' => $point, ':id' => $schedule_id]);
+}
 }
 ?>

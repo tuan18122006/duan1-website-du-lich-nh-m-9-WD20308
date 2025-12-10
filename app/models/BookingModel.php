@@ -230,4 +230,67 @@ class BookingModel extends Model
         $stmt->execute([':schedule_id' => $schedule_id]);
         return $stmt->fetchAll();
     }
+// --- PHẦN MỚI: CHỨC NĂNG ĐIỂM DANH (CHECK-IN) ---
+
+    // 1. Lấy danh sách khách của 1 lịch trình (Kèm trạng thái check-in)
+    public function getPassengersByScheduleWithCheckin($schedule_id)
+    {
+        $sql = "SELECT 
+                    bp.id as passenger_id, 
+                    bp.full_name, 
+                    bp.gender, 
+                    bp.age, 
+                    bp.is_checked_in,   /* Quan trọng: Lấy trạng thái đã điểm danh chưa */
+                    b.customer_phone, 
+                    b.customer_name as booker_name,
+                    b.status as booking_status
+                FROM booking_passengers bp
+                JOIN bookings b ON bp.booking_id = b.id
+                WHERE b.schedule_id = :sid 
+                AND b.status != 'Đã hủy'
+                ORDER BY b.id ASC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':sid' => $schedule_id]);
+        return $stmt->fetchAll();
+    }
+
+    // 2. Reset điểm danh (Cho về 0 hết trước khi lưu cái mới)
+    public function resetCheckinForSchedule($schedule_id) {
+        $sql = "UPDATE booking_passengers bp 
+                JOIN bookings b ON bp.booking_id = b.id
+                SET bp.is_checked_in = 0 
+                WHERE b.schedule_id = :sid";
+        return $this->db->prepare($sql)->execute([':sid' => $schedule_id]);
+    }
+
+    // 3. Cập nhật điểm danh cho 1 khách
+    public function updatePassengerCheckin($passenger_id, $status) {
+        $sql = "UPDATE booking_passengers SET is_checked_in = :status WHERE id = :id";
+        return $this->db->prepare($sql)->execute([':status' => $status, ':id' => $passenger_id]);
+    }
+
+    // 4. Hàm thống kê cho Admin (Xem tiến độ)
+    public function getCheckInStats($schedule_id) {
+        // Đếm tổng số khách
+        $sqlTotal = "SELECT COUNT(*) FROM booking_passengers bp 
+                     JOIN bookings b ON bp.booking_id = b.id 
+                     WHERE b.schedule_id = :sid AND b.status != 'Đã hủy'";
+        
+        // Đếm số khách ĐÃ CHECK-IN
+        $sqlChecked = "SELECT COUNT(*) FROM booking_passengers bp 
+                       JOIN bookings b ON bp.booking_id = b.id 
+                       WHERE b.schedule_id = :sid AND bp.is_checked_in = 1 AND b.status != 'Đã hủy'";
+
+        $total = $this->db->prepare($sqlTotal); $total->execute([':sid' => $schedule_id]);
+        $checked = $this->db->prepare($sqlChecked); $checked->execute([':sid' => $schedule_id]);
+
+        return [
+            'total' => $total->fetchColumn(),
+            'checked' => $checked->fetchColumn()
+        ];
+    }
+
+
+
 }
