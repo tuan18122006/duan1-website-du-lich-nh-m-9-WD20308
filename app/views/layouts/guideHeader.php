@@ -175,14 +175,6 @@
             <a href="index.php?act=my_tour" class="<?= $act=='my_tours' ? 'active':'' ?>">
                 <i class="bi bi-geo-alt"></i> Tour của tôi
             </a>
-
-            <a href="index.php?act=my_booking" class="<?= $act=='my_booking' ? 'active':'' ?>">
-                <i class="bi bi-journal-text"></i> Đơn Booking
-            </a>
-
-            <a href="index.php?act=calendar" class="<?= $act=='calendar' ? 'active':'' ?>">
-                <i class="bi bi-calendar-week"></i> Lịch làm việc
-            </a>
         </div>
     </aside>
 

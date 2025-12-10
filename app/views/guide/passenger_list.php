@@ -9,7 +9,7 @@
         </div>
         
         <div>
-            <button onclick="window.print()" class="btn btn-primary btn-sm">
+            <button class="btn btn-primary btn-sm">
                 <i class="bi bi-printer"></i> In DS
             </button>
         </div>
@@ -65,7 +65,7 @@
 
                                 <td>
                                     <?php if (!empty($p['customer_phone'])): ?>
-                                        <a href="tel:<?= $p['customer_phone'] ?>" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                        <a class="btn btn-outline-success btn-sm rounded-pill px-3">
                                             <i class="bi bi-telephone-fill"></i> Gọi
                                         </a>
                                     <?php else: ?>

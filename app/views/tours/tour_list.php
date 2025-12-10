@@ -100,7 +100,7 @@
                                 <a href="index.php?act=tour_passenger_list&id=<?= $tour['tour_id'] ?>" 
                                 class="btn btn-success btn-sm me-1" 
                                 title="Danh sách khách đoàn chi tiết">
-                                <i class="fas fa-users"></i> DS Khách
+                                <i class="fas fa-users"></i>
                                 </a>
 
                                 <a href="index.php?act=update_tour&id=<?= $tour['tour_id'] ?>" 

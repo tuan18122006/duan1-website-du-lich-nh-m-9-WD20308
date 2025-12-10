@@ -44,7 +44,7 @@
                                     ?>
                                 </td>
                                 <td>
-                                    <a href="index.php?act=guide_passenger_list&id=<?= $tour['tour_id'] ?>&schedule_id=<?= $tour['schedule_id'] ?>"  
+                                    <a href="index.php?act=guide_passenger_list&id=<?= $tour['tour_id'] ?>"  
                                        class="btn btn-primary btn-sm rounded-pill px-3">
                                        <i class="bi bi-people-fill me-1"></i> Xem khách
                                     </a>
