@@ -143,44 +143,54 @@ class BookingModel extends Model
     }
     // Trong BookingModel.php
 
-    public function addPassengers($booking_id, $passengers)
+    // CẦN SỬA: Hàm này phải nhận thêm $schedule_id
+    public function addPassengers($booking_id, $schedule_id, $passengers) // <<< THÊM $schedule_id
     {
-        // Kiểm tra xem booking_id có hợp lệ không
-        if (!$booking_id) {
-            echo "Lỗi: Không có Booking ID để gắn hành khách!";
-            die();
+        if (!$booking_id || !$schedule_id) {
+            return false;
         }
 
-        $sql = "INSERT INTO booking_passengers (booking_id, full_name, gender, age) 
-            VALUES (:booking_id, :full_name, :gender, :age)";
+        // THÊM: is_present (0=Vắng/Chưa điểm danh) và schedule_id, is_booker
+        $sql = "INSERT INTO booking_passengers (
+                booking_id, 
+                schedule_id, 
+                full_name, 
+                gender, 
+                age, 
+                is_present, 
+                is_booker
+            ) VALUES (
+                :booking_id, 
+                :schedule_id, 
+                :full_name, 
+                :gender, 
+                :age, 
+                0, 
+                :is_booker
+            )";
 
         $stmt = $this->db->prepare($sql);
 
-        foreach ($passengers as $index => $p) {
-            // Xử lý dữ liệu: Nếu tuổi rỗng thì để NULL
-            $age = ($p['age'] === '') ? null : $p['age'];
+        foreach ($passengers as $p) {
+            $age = ($p['age'] === '') ? null : ($p['age'] ?? null); // Xử lý nếu $p['age'] không tồn tại
+            $is_booker = $p['is_booker'] ?? false; // Lấy cờ Booker
 
             try {
-                $status = $stmt->execute([
+                $stmt->execute([
                     ':booking_id' => $booking_id,
-                    ':full_name'  => $p['name'], // Key này khớp với debug của bạn
-                    ':gender'     => $p['gender'],
-                    ':age'        => $age
+                    ':schedule_id' => $schedule_id,
+                    ':full_name'  => $p['name'] ?? 'Khách',
+                    ':gender'     => $p['gender'] ?? 'Chưa rõ',
+                    ':age'        => $age,
+                    ':is_booker'  => $is_booker ? 1 : 0
                 ]);
-
-                // [DEBUG] Nếu Insert thất bại -> In lỗi MySQL ra ngay
-                if (!$status) {
-                    echo "<div style='background:red; color:white; padding:20px;'>";
-                    echo "<h3>LỖI SQL KHI THÊM KHÁCH THỨ $index:</h3>";
-                    print_r($stmt->errorInfo()); // In chi tiết lỗi
-                    echo "</div>";
-                    die(); // Dừng chương trình
-                }
             } catch (Exception $e) {
-                echo "Lỗi Exception: " . $e->getMessage();
-                die();
+                // (Nên log lỗi thay vì die() ngay lập tức)
+                error_log("Lỗi thêm hành khách: " . $e->getMessage());
+                return false;
             }
         }
+        return true;
     }
 
     // Hàm lấy danh sách khách theo Tour để làm trang quản lý (Cho bước 5)
@@ -215,19 +225,56 @@ class BookingModel extends Model
     public function getPassengersBySchedule($schedule_id)
     {
         $sql = "SELECT 
-                bp.full_name, 
-                bp.gender, 
-                bp.age, /* <--- BẠN PHẢI THÊM DÒNG NÀY VÀO */
-                b.customer_phone, 
-                b.status,
-                b.customer_name as booker_name
-            FROM booking_passengers bp
-            JOIN bookings b ON bp.booking_id = b.id
-            WHERE b.schedule_id = :schedule_id AND b.status != 'Đã hủy'
-            ORDER BY b.id ASC";
-
+            bp.id AS passenger_id, 
+            bp.full_name, 
+            bp.gender,         
+            bp.age,           
+            bp.is_present, 
+            bp.is_booker, 
+            b.customer_phone,
+            b.customer_name AS booker_name
+        FROM booking_passengers bp
+        JOIN bookings b ON bp.booking_id = b.id
+        WHERE bp.schedule_id = :schedule_id
+    ";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':schedule_id' => $schedule_id]);
         return $stmt->fetchAll();
+    }
+    
+    public function updateCheckinStatus($schedule_id, $present_passenger_ids)
+    {
+
+        $this->db->beginTransaction();
+
+        try {
+            // 1. Đặt TẤT CẢ hành khách của lịch trình này thành VẮNG MẶT (0)
+            $sql_reset = "UPDATE booking_passengers 
+                      SET is_present = 0 
+                      WHERE schedule_id = :schedule_id";
+            $stmt_reset = $this->db->prepare($sql_reset);
+            $stmt_reset->execute([':schedule_id' => $schedule_id]);
+
+            // 2. Đặt những hành khách đã check (có trong mảng POST) thành CÓ MẶT (1)
+            if (!empty($present_passenger_ids)) {
+                $placeholders = implode(',', array_fill(0, count($present_passenger_ids), '?'));
+                $sql_update = "UPDATE booking_passengers 
+                           SET is_present = 1 
+                           WHERE schedule_id = ? AND id IN ($placeholders)"; // Dùng 'id' (passenger_id)
+
+                // Ghép schedule_id vào đầu mảng ID
+                $params = array_merge([$schedule_id], $present_passenger_ids);
+
+                $stmt_update = $this->db->prepare($sql_update);
+                $stmt_update->execute($params);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Lỗi điểm danh: " . $e->getMessage());
+            return false;
+        }
     }
 }

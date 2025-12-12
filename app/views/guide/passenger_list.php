@@ -36,7 +36,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th class="ps-4">#</th>
+                            <th class="ps-4">STT</th>
                             <th>Họ tên</th>
                             <th>Thông tin</th>
                             <th>Liên hệ</th>
@@ -62,15 +62,24 @@
                                         <?= $p['age'] ? $p['age'] . ' tuổi' : '?? tuổi' ?>
                                     </div>
                                 </td>
-
                                 <td>
-                                    <?php if (!empty($p['customer_phone'])): ?>
-                                        <a class="btn btn-outline-success btn-sm rounded-pill px-3">
-                                            <i class="bi bi-telephone-fill"></i> Gọi
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="text-muted small">---</span>
-                                    <?php endif; ?>
+                                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">
+                                        <i class="bi bi-person-badge-fill text-secondary me-1"></i>
+                                        <?php 
+                                            // Nếu có tên người đặt riêng thì hiện, nếu không thì lấy tên hành khách (trưởng đoàn)
+                                            echo !empty($p['booker_name']) ? htmlspecialchars($p['booker_name']) : htmlspecialchars($p['full_name']); 
+                                        ?>
+                                    </div>
+
+                                    <div class="mt-1">
+                                        <?php if (!empty($p['customer_phone'])): ?>
+                                            <a class="text-decoration-none text-success small fw-bold border border-success rounded-pill px-2 py-1 d-inline-block bg-light">
+                                                <i class="bi bi-telephone-fill me-1"></i> <?= $p['customer_phone'] ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-muted small fst-italic">---</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

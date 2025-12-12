@@ -188,14 +188,15 @@ class GuideModel extends Model
         return $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // Trả về dạng [Tháng => Tiền]
     }
     // 1. Lấy chuyến đi KẾ TIẾP gần nhất (Quan trọng nhất với HDV)
-    public function getNextTour($guide_id) {
+    public function getNextTour($guide_id)
+    {
         $sql = "SELECT t.tour_name, t.image_url, s.start_date, s.end_date, s.stock, s.booked, s.schedule_id, t.tour_id
                 FROM tour_schedules s
                 JOIN tours t ON s.tour_id = t.tour_id
                 WHERE s.guide_id = :guide_id 
                 AND s.start_date >= NOW() 
                 ORDER BY s.start_date ASC 
-                LIMIT 1"; 
+                LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':guide_id' => $guide_id]);
         return $stmt->fetch();
@@ -235,11 +236,12 @@ class GuideModel extends Model
 
 
     // 2. Thống kê năng suất (Thay vì doanh thu)
-    public function getGuideProductivity($guide_id) {
+    public function getGuideProductivity($guide_id)
+    {
         // Đếm số tour đã hoàn thành
         $sqlDone = "SELECT COUNT(*) FROM tour_schedules 
                     WHERE guide_id = :gid AND end_date < NOW()";
-        
+
         // Đếm tổng số khách đã phục vụ (Dựa trên số booked của các tour đã qua)
         $sqlGuests = "SELECT SUM(booked) FROM tour_schedules 
                       WHERE guide_id = :gid AND end_date < NOW()";
@@ -249,9 +251,76 @@ class GuideModel extends Model
                         WHERE guide_id = :gid AND start_date >= NOW()";
 
         return [
-            'tours_done' => $this->db->prepare($sqlDone)->execute([':gid'=>$guide_id]) ? $this->db->prepare($sqlDone)->fetchColumn() : 0,
-            'total_guests' => $this->db->prepare($sqlGuests)->execute([':gid'=>$guide_id]) ? $this->db->prepare($sqlGuests)->fetchColumn() : 0,
-            'upcoming_count' => $this->db->prepare($sqlUpcoming)->execute([':gid'=>$guide_id]) ? $this->db->prepare($sqlUpcoming)->fetchColumn() : 0,
+            'tours_done' => $this->db->prepare($sqlDone)->execute([':gid' => $guide_id]) ? $this->db->prepare($sqlDone)->fetchColumn() : 0,
+            'total_guests' => $this->db->prepare($sqlGuests)->execute([':gid' => $guide_id]) ? $this->db->prepare($sqlGuests)->fetchColumn() : 0,
+            'upcoming_count' => $this->db->prepare($sqlUpcoming)->execute([':gid' => $guide_id]) ? $this->db->prepare($sqlUpcoming)->fetchColumn() : 0,
         ];
+    }
+
+
+    public function hasGuideCheckedIn($guide_id, $schedule_id)
+    {
+        $sql = "SELECT COUNT(checkin_id) FROM guide_checkins 
+                WHERE guide_id = :gid AND schedule_id = :sid";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':gid' => $guide_id, ':sid' => $schedule_id]);
+
+        return $stmt->fetchColumn() > 0;
+    }
+
+
+    public function recordCheckin($guide_id, $schedule_id, $note = null)
+    {
+        $sql = "INSERT INTO guide_checkins (guide_id, schedule_id, checkin_time, note)
+                VALUES (:gid, :sid, NOW(), :note)";
+
+        $stmt = $this->db->prepare($sql);
+
+        try {
+            return $stmt->execute([
+                ':gid' => $guide_id,
+                ':sid' => $schedule_id,
+                ':note' => $note
+            ]);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    public function getCheckinHistory($guide_id, $limit = 10)
+    {
+        $sql = "SELECT 
+            ci.*, 
+            t.tour_name, 
+            s.start_date,
+            s.schedule_id, 
+            (
+                SELECT COUNT(bp.id) 
+                FROM booking_passengers bp 
+                WHERE bp.schedule_id = ci.schedule_id AND bp.is_present = 1
+            ) as present_count,
+            (
+                SELECT COUNT(bp.id) 
+                FROM booking_passengers bp 
+                WHERE bp.schedule_id = ci.schedule_id
+            ) as total_passengers
+        FROM 
+            guide_checkins ci
+        JOIN 
+            tour_schedules s ON ci.schedule_id = s.schedule_id
+        JOIN 
+            tours t ON s.tour_id = t.tour_id
+        WHERE 
+            ci.guide_id = :gid
+        ORDER BY ci.checkin_time DESC
+        LIMIT :limit
+    ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':gid', $guide_id, PDO::PARAM_INT);
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
     }
 }

@@ -1,15 +1,17 @@
 <?php
 class GuideController extends Controller
 {
-    private $guideModel;
-    private $userModel;
+    public $guideModel;
+    public $userModel;
     public $tourModel;
+    public $bookingModel;
 
     public function __construct()
     {
         $this->guideModel = $this->model('GuideModel');
         $this->userModel = $this->model('UserModel');
         $this->tourModel = $this->model('TourModel');
+        $this->bookingModel = $this->model('BookingModel');
     }
 
     // 1. LIST (Admin xem danh sách HDV)
@@ -154,10 +156,12 @@ class GuideController extends Controller
     // PHẦN CHỨC NĂNG DÀNH RIÊNG CHO HDV (ROLE 2)
     // ==========================================
 
-public function dashboard() {
+    public function dashboard()
+    {
         // 1. Kiểm tra quyền & Lấy ID
         if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 2) {
-            header("Location: index.php"); exit;
+            header("Location: index.php");
+            exit;
         }
 
         $guide_id = $_SESSION['user']['guide_id'] ?? null;
@@ -174,7 +178,7 @@ public function dashboard() {
 
         // 3. CẤU HÌNH VIEW (SỬA ĐOẠN NÀY)
         // Dùng đường dẫn chuẩn sau khi đã đổi tên ở Bước 1
-        $path = "./app/views/dashboard/dashboard_guide.php"; 
+        $path = "./app/views/dashboard/dashboard_guide.php";
 
         // Kiểm tra file tồn tại chưa
         if (!file_exists($path)) {
@@ -184,43 +188,163 @@ public function dashboard() {
         // Dùng GLOBALS để truyền biến chắc chắn 100%
         $GLOBALS['view_path'] = $path;
 
-        require_once "./app/views/layouts/guideHeader.php"; 
-    }
-
-    // 9. TOUR CỦA TÔI
-    public function myTour()
-    {
-        // Logic lấy ID giống Dashboard
-        $guide_id = $_SESSION['user']['guide_id'] ?? null;
-        if (!$guide_id) {
-             $guide = $this->guideModel->getGuideById($_SESSION['user']['user_id']);
-             $guide_id = $guide['guide_id'] ?? 0;
-        }
-
-        $tours = $this->tourModel->getToursByGuide($guide_id);
-
-        $view_path = "./app/views/guide/myTour.php";
         require_once "./app/views/layouts/guideHeader.php";
     }
-    // 10. XEM DANH SÁCH KHÁCH (Giao diện HDV)
-    public function passengerList() {
-        // Kiểm tra quyền HDV
-        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 2) {
-            header("Location: index.php"); exit;
+
+    public function myTour()
+    {
+        // 1. Lấy và định nghĩa các biến cần thiết
+        $guide_model = $this->guideModel;
+
+        $current_guide_id = $_SESSION['user']['guide_id'] ?? 0;
+        if (!$current_guide_id) {
+            $guide = $guide_model->getGuideById($_SESSION['user']['user_id']);
+            $current_guide_id = $guide['guide_id'] ?? 0;
+            $_SESSION['user']['guide_id'] = $current_guide_id;
         }
 
-        $tour_id = $_GET['id'] ?? 0;
+        $tours = $this->tourModel->getToursByGuide($current_guide_id);
+
+        // --- BỔ SUNG LOGIC LẤY DANH SÁCH HÀNH KHÁCH CHO TỪNG TOUR ---
+        $passengers_by_schedule = [];
+        foreach ($tours as $tour) {
+            $schedule_id = $tour['schedule_id'] ?? 0;
+            if ($schedule_id) {
+                // Lấy danh sách hành khách cho từng lịch trình
+                $passengers_by_schedule[$schedule_id] = $this->bookingModel->getPassengersBySchedule($schedule_id);
+            }
+        }
+
+        $data_for_view = [
+            'guide_model' => $guide_model,
+            'booking_model' => $this->bookingModel,
+            'current_guide_id' => $current_guide_id,
+            'tours' => $tours,
+            'passengers_by_schedule' => $passengers_by_schedule,
+        ];
+
+        // Truyền mảng dữ liệu vào biến toàn cục.
+        $GLOBALS['view_data'] = $data_for_view;
+
+        $view_path = "./app/views/guide/myTour.php";
+
+        require_once "./app/views/layouts/guideHeader.php";
+    }
+
+    public function passengerList()
+    {
+        // Lấy schedule_id từ URL
         $schedule_id = $_GET['schedule_id'] ?? 0;
 
-        // Lấy thông tin Tour
-        $tour = $this->tourModel->getTourById($tour_id);
-        
-        // Lấy danh sách khách (Sử dụng Model Booking đã có)
-        $bookingModel = $this->model('BookingModel');
-        $passengers = $bookingModel->getPassengersBySchedule($schedule_id);
+        // Kiểm tra guide_id (từ session) và schedule_id
+        $guide_id = $_SESSION['user']['guide_id'] ?? 0;
 
-        // Gọi View riêng cho HDV
-        $view_path = "./app/views/guide/passenger_list.php"; 
-        require_once "./app/views/layouts/guideHeader.php"; 
+        if ($guide_id == 0 || $schedule_id == 0) {
+            $_SESSION['error'] = "Thiếu ID hướng dẫn viên hoặc ID lịch trình tour.";
+            header("Location: index.php?act=guide/myTour");
+            exit;
+        }
+
+        // --- FIX: Lấy thông tin chi tiết Lịch trình (Schedule) và Tour ---
+        // Sử dụng hàm getScheduleById() đã có trong TourModel
+        $schedule_info = $this->tourModel->getScheduleById($schedule_id);
+        $tour_info = null;
+        if ($schedule_info && $schedule_info['tour_id']) {
+            $tour_info = $this->tourModel->getTourById($schedule_info['tour_id']);
+        }
+        // ------------------------------------------------------------------
+
+        // Nếu pass kiểm tra, chạy logic lấy dữ liệu
+        // Dùng $this->bookingModel đã khởi tạo
+        $passengers = $this->bookingModel->getPassengersBySchedule($schedule_id);
+
+        // Chuẩn bị dữ liệu truyền vào View
+        $data_for_view = [
+            'passengers' => $passengers,
+            'schedule' => $schedule_info, // Thông tin lịch trình
+            'tour' => $tour_info,         // Thông tin tour
+        ];
+
+        $GLOBALS['view_data'] = $data_for_view;
+
+        // Load View danh sách hành khách
+        $view_path = './app/views/guide/passenger_list.php'; // Hoặc passenger_list.php tùy tên file bạn dùng
+        require_once "./app/views/layouts/guideHeader.php";
+    }
+
+    public function checkin()
+    {
+        // 1. Kiểm tra quyền và method
+        if (!isset($_POST['schedule_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $_SESSION['error'] = "Yêu cầu không hợp lệ.";
+            header("Location: index.php?act=my_tour");
+            exit;
+        }
+
+        // 2. Lấy dữ liệu
+        $schedule_id = $_POST['schedule_id'];
+        $note = $_POST['note'] ?? '';
+        $guide_id = $_SESSION['user']['guide_id'] ?? null;
+
+        // Cần đảm bảo guide_id được lấy chính xác nếu chưa có trong session
+        if (!$guide_id && isset($_SESSION['user']['user_id'])) {
+            $guide = $this->guideModel->getGuideById($_SESSION['user']['user_id']);
+            $guide_id = $guide['guide_id'] ?? 0;
+        }
+
+
+        // 3. Kiểm tra Hướng dẫn viên và Tour hợp lệ
+        if ($guide_id == 0 || $schedule_id == 0) {
+            $_SESSION['error'] = "Thiếu ID hướng dẫn viên hoặc ID lịch trình tour.";
+            header("Location: index.php?act=my_tour");
+            exit;
+        }
+
+        $checked_passenger_ids = $_POST['passenger_ids'] ?? []; // Mảng chứa ID khách có mặt
+
+        // 4. Ghi nhận Nhật ký mới (BƯỚC NÀY KHÔNG ĐỔI)
+        if ($this->guideModel->recordCheckin($guide_id, $schedule_id, $note)) {
+
+            // --- XỬ LÝ ĐIỂM DANH ---
+            // Dùng $this->bookingModel đã khởi tạo
+            // 4a. Cập nhật trạng thái điểm danh
+            $this->bookingModel->updateCheckinStatus($schedule_id, $checked_passenger_ids);
+            // -------------------------
+
+            $_SESSION['success'] = "Ghi nhật ký và điểm danh thành công!";
+        } else {
+            $_SESSION['error'] = "Lỗi hệ thống hoặc lịch trình đã được ghi nhật ký.";
+        }
+
+        header("Location: index.php?act=my_tour");
+        exit;
+    }
+
+    public function checkinHistory()
+    {
+        // 1. Kiểm tra quyền HDV
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 2) {
+            header("Location: index.php");
+            exit;
+        }
+
+        $guide_id = $_SESSION['user']['guide_id'] ?? null;
+        if (!$guide_id) {
+            $guide = $this->guideModel->getGuideById($_SESSION['user']['user_id']);
+            $guide_id = $guide['guide_id'] ?? 0;
+            $_SESSION['user']['guide_id'] = $guide_id;
+        }
+
+        $history = $this->guideModel->getCheckinHistory($guide_id, 20);
+
+        // CẤU HÌNH VIEW ĐỒNG BỘ
+        $data_for_view = [
+            'history' => $history,
+        ];
+
+        $GLOBALS['view_data'] = $data_for_view;
+
+        $view_path = "./app/views/guide/checkinHistory.php";
+        require_once "./app/views/layouts/guideHeader.php";
     }
 }

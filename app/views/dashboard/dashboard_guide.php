@@ -110,7 +110,6 @@
             <h4 class="fw-bold mb-0">Xin chào, <?= $_SESSION['user']['full_name'] ?? 'HDV' ?>! 👋</h4>
             <p class="text-muted mb-0">Chúc bạn một ngày làm việc tràn đầy năng lượng.</p>
         </div>
-
     </div>
 
     <div class="row g-4 mb-4">

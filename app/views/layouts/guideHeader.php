@@ -153,7 +153,9 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
                 <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
-                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
                 <li><a class="dropdown-item text-danger" href="index.php?act=logout">Đăng xuất</a></li>
             </ul>
         </div>
@@ -168,12 +170,16 @@
         <?php $act = $_GET['act'] ?? 'home'; ?>
 
         <div class="sidebar-menu">
-            <a href="index.php?act=guide_home" class="<?= $act=='guide_home' ? 'active':'' ?>">
+            <a href="index.php?act=guide_home" class="<?= $act == 'guide_home' ? 'active' : '' ?>">
                 <i class="bi bi-house-door"></i> Trang chủ
             </a>
 
-            <a href="index.php?act=my_tour" class="<?= $act=='my_tours' ? 'active':'' ?>">
+            <a href="index.php?act=my_tour" class="<?= $act == 'my_tours' ? 'active' : '' ?>">
                 <i class="bi bi-geo-alt"></i> Tour của tôi
+            </a>
+
+            <a href="index.php?act=checkin_history" class="<?= $act == 'checkinHistory' ? 'active' : '' ?>">
+                <i class="bi bi-journal-text"></i> Nhật ký Công việc
             </a>
         </div>
     </aside>
@@ -181,27 +187,28 @@
     <!-- ======================================
          3. MAIN CONTENT
     ======================================= -->
-<main class="main-content">
+    <main class="main-content">
         <div class="content-body-wrapper">
             <?php
-            // Ưu tiên lấy từ GLOBALS để tránh lỗi mất biến
+
+            // ***** FIX LỖI SCOPE: TRÍCH XUẤT BIẾN TỪ CONTROLLER *****
+            if (isset($GLOBALS['view_data']) && is_array($GLOBALS['view_data'])) {
+                extract($GLOBALS['view_data']);
+                // Sau khi extract, $guide_model, $current_guide_id, $tours đã có sẵn ở đây
+                unset($GLOBALS['view_data']); // Dọn dẹp
+            }
+            // ******************************************************
+
             $final_path = "";
-            
+
             if (isset($GLOBALS['view_path'])) {
                 $final_path = $GLOBALS['view_path'];
             } elseif (isset($view_path)) {
                 $final_path = $view_path;
             }
 
-            // Gọi file
             if (!empty($final_path) && file_exists($final_path)) {
                 require_once $final_path;
-            } else {
-                echo '<div class="alert alert-danger shadow-sm border-0">';
-                echo '<i class="bi bi-exclamation-triangle-fill me-2"></i>'; 
-                echo 'Không thể tải nội dung. <br>';
-                echo 'Đường dẫn nhận được: ' . htmlspecialchars($final_path);
-                echo '</div>';
             }
             ?>
         </div>
