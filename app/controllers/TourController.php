@@ -10,19 +10,21 @@ class TourController extends Controller
     }
 
     // 1. HIỆN DANH SÁCH TOUR THƯỜNG
-    public function showTour()
-    {
-        $tour_list = $this->tourModel->getToursByType(0);
-        $categories = $this->tourModel->getAllCategories();
-        
-        // Fix lỗi: $filter_value chưa có, gán mặc định là null hoặc lấy từ GET
-        $filter_value = $_GET['category_id'] ?? null;
+public function showTour() {
+    $keyword = $_GET['keyword'] ?? null;
+    $filter_value = $_GET['category_id'] ?? null;
 
-        $data = [
-            'tour_list' => $tour_list,
-            'category_filter' => $filter_value, 
-            'categories' => $categories
-        ];
+    // Truyền tham số vào Model
+    $tour_list = $this->tourModel->getToursByType(0, $keyword, $filter_value);
+    
+    $categories = $this->tourModel->getAllCategories();
+    
+    $data = [
+        'tour_list' => $tour_list,
+        'category_filter' => $filter_value, 
+        'keyword' => $keyword, // Truyền lại để giữ giá trị trong ô input
+        'categories' => $categories
+    ];
 
         extract($data);
 
@@ -34,9 +36,10 @@ class TourController extends Controller
     }
 
     // 2. HIỆN DANH SÁCH TOUR CUSTOM
-    public function showCustomTours()
-    {
-        $tour_list = $this->tourModel->getToursByType(1); 
+    public function showCustomTours() {
+        
+    $keyword = $_GET['keyword'] ?? null;
+    $tour_list = $this->tourModel->getToursByType(1, $keyword, null);
         $categories = $this->tourModel->getAllCategories();
 
         $data = ['tour_list' => $tour_list, 'categories' => $categories];
@@ -231,7 +234,7 @@ class TourController extends Controller
         require_once './app/views/layouts/main.php';
     }
 
-    // 7. QUẢN LÝ LỊCH TRÌNH
+// 7. QUẢN LÝ LỊCH TRÌNH
     public function manageSchedules() {
         $tour_id = $_GET['id'] ?? 0;
         $tour = $this->tourModel->getTourById($tour_id);
@@ -244,21 +247,46 @@ class TourController extends Controller
             exit;
         }
 
+        // --- XỬ LÝ THÊM LỊCH ---
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_schedule'])) {
+            
+            $start_date = $_POST['start_date'];
+            $end_date = $_POST['end_date']; // Lấy từ input readonly
+            $guide_id = !empty($_POST['guide_id']) ? $_POST['guide_id'] : null;
+
+            // Kiểm tra trùng lịch
+            if ($guide_id) {
+                $is_available = $this->tourModel->checkGuideAvailability($guide_id, $start_date, $end_date);
+                
+                if (!$is_available) {
+                    $guide_name = "HDV này"; 
+                    foreach($guides as $g) {
+                        if($g['guide_id'] == $guide_id) {
+                            $guide_name = $g['full_name'];
+                            break;
+                        }
+                    }
+                    $_SESSION['error'] = "Không thể xếp lịch! <strong>$guide_name</strong> đang bận dẫn tour khác trong khung giờ này (hoặc chưa kết thúc tour trước).";
+                    header("Location: index.php?act=tour_schedules&id=$tour_id");
+                    exit;
+                }
+            }
             $data = [
                 ':tour_id' => $tour_id,
-                ':start_date' => $_POST['start_date'],
-                ':end_date' => $_POST['end_date'],
+                ':start_date' => $start_date,
+                ':end_date' => $end_date,
                 ':price' => $_POST['price'],
                 ':stock' => $_POST['stock'],
-                ':guide_id' => !empty($_POST['guide_id']) ? $_POST['guide_id'] : null 
+                ':guide_id' => $guide_id
             ];
+            
             $this->tourModel->addSchedule($data);
-            $_SESSION['success'] = "Đã thêm lịch khởi hành!";
+            $_SESSION['success'] = "Đã thêm lịch khởi hành thành công!";
             header("Location: index.php?act=tour_schedules&id=$tour_id");
             exit;
-        }
+        } // <--- BẠN ĐÃ THIẾU DẤU ĐÓNG NÀY
 
+        // --- XỬ LÝ XÓA LỊCH ---
         if (isset($_GET['delete_id'])) {
             $this->tourModel->deleteSchedule($_GET['delete_id']);
             $_SESSION['success'] = "Đã xóa lịch!";
@@ -340,14 +368,6 @@ class TourController extends Controller
         $view_path = './app/views/tours/tour_bookings.php';
         require_once './app/views/layouts/main.php';
     }
-
-    public function tourHistory() {
-        $history_list = $this->tourModel->getHistoryTours();
-        $view_path = './app/views/tours/history.php';
-        $page_title = "Lịch sử Tour";
-        require_once './app/views/layouts/main.php';
-    }
-// File: app/controllers/TourController.php
 
 public function passengerList() {
     $tour_id = $_GET['id'] ?? 0;

@@ -72,4 +72,12 @@ public function getChartData($filter = 'year', $date_custom = null) {
 
     return $this->db->query($sql)->fetchAll();
 }
+    public function getRecentTransactions($limit = 5) {
+        $sql = "SELECT b.id, b.customer_name, b.customer_phone, b.total_price, b.status, b.created_at, t.tour_name
+                FROM bookings b
+                LEFT JOIN tours t ON b.tour_id = t.tour_id
+                ORDER BY b.created_at DESC
+                LIMIT $limit";
+        return $this->db->query($sql)->fetchAll();
+    }
 }

@@ -4,6 +4,23 @@
         <a href="index.php?act=tour_list" class="btn btn-secondary">Quay lại danh sách</a>
     </div>
 
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <?= $_SESSION['success'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> <?= $_SESSION['error'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+    <input type="hidden" id="tourDuration" value="<?= $tour['duration_days'] ?? 1 ?>">
+
     <div class="row">
         <div class="col-md-4">
             <div class="card shadow border-0">
@@ -11,16 +28,20 @@
                 <div class="card-body">
                     <form method="POST">
                         <div class="mb-3">
-                            <label>Ngày đi (*)</label>
-                            <input type="datetime-local" name="start_date" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label>Ngày về (*)</label>
-                            <input type="datetime-local" name="end_date" class="form-control" required>
+                            <label class="fw-bold">Ngày đi (Khởi hành) (*)</label>
+                            <input type="datetime-local" name="start_date" id="start_date" 
+                                   class="form-control" required onchange="calculateEndDate()">
                         </div>
                         
                         <div class="mb-3">
-                            <label>Hướng dẫn viên</label>
+                            <label class="fw-bold">Ngày về (Dự kiến):</label>
+                            <input type="datetime-local" name="end_date" id="end_date" 
+                                   class="form-control bg-light" readonly required>
+                            <small class="text-muted fst-italic">Tự động cộng <?= $tour['duration_days'] ?? 1 ?> ngày theo Tour</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="fw-bold">Hướng dẫn viên</label>
                             <select name="guide_id" class="form-select">
                                 <option value="">-- Chưa chỉ định --</option>
                                 <?php if(!empty($guides)): ?>
@@ -34,12 +55,14 @@
                         </div>
 
                         <div class="mb-3">
-                            <label>Giá vé (VNĐ)</label>
-                            <input type="number" name="price" class="form-control" value="<?= $tour['base_price'] ?>" required>
+                            <label class="fw-bold">Giá vé (VNĐ)</label>
+                            <input type="number" name="price" class="form-control" 
+                                   value="<?= $tour['base_price'] ?>" required>
                         </div>
                         <div class="mb-3">
-                            <label>Số chỗ tối đa</label>
-                            <input type="number" name="stock" class="form-control" value="<?= $tour['people'] ?>" required>
+                            <label class="fw-bold">Số chỗ tối đa</label>
+                            <input type="number" name="stock" class="form-control" 
+                                   value="<?= $tour['people'] ?>" required>
                         </div>
                         <button type="submit" name="add_schedule" class="btn btn-success w-100">Thêm Lịch</button>
                     </form>
@@ -55,7 +78,8 @@
                         <thead class="bg-light">
                             <tr>
                                 <th>Thời gian</th>
-                                <th>HDV Phụ trách</th> <th>Giá vé</th>
+                                <th>HDV Phụ trách</th> 
+                                <th>Giá vé</th>
                                 <th>Chỗ</th>
                                 <th>Hành động</th>
                             </tr>
@@ -79,7 +103,10 @@
                                         <?php endif; ?>
                                     </td>
 
-                                    <td class="fw-bold text-danger"><?= number_format($s['price']) ?></td>
+                                    <td class="fw-bold text-danger">
+                                        <?= number_format($s['price'] ?? 0) ?> đ
+                                    </td>
+                                    
                                     <td>
                                         <?= $s['booked'] ?> / <?= $s['stock'] ?>
                                     </td>
@@ -100,3 +127,24 @@
         </div>
     </div>
 </div>
+
+<script>
+    function calculateEndDate() {
+        const startDateInput = document.getElementById('start_date').value;
+        const duration = parseInt(document.getElementById('tourDuration').value) || 1;
+        
+        if (startDateInput) {
+            const startDate = new Date(startDateInput);
+            const endDate = new Date(startDate.getTime() + (duration * 24 * 60 * 60 * 1000));
+            
+            const year = endDate.getFullYear();
+            const month = String(endDate.getMonth() + 1).padStart(2, '0');
+            const day = String(endDate.getDate()).padStart(2, '0');
+            const hours = String(endDate.getHours()).padStart(2, '0');
+            const minutes = String(endDate.getMinutes()).padStart(2, '0');
+            
+            const formattedEndDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('end_date').value = formattedEndDate;
+        }
+    }
+</script>

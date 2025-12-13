@@ -51,7 +51,14 @@
                 <div class="form-group">
                     <label>Giá Tour (VNĐ) (*)</label>
                     <input type="number" name="base_price" class="form-control" required min="0"
-                           value="<?= htmlspecialchars($sticky_data['base_price'] ?? '') ?>">
+                        value="<?= htmlspecialchars($sticky_data['base_price'] ?? '') ?>">
+                </div>
+
+                <div class="form-group">
+                    <label>Số ngày đi (Duration) (*)</label>
+                    <input type="number" name="duration_days" class="form-control" required min="1" placeholder="VD: 3 (cho tour 3 ngày 2 đêm)"
+                        value="<?= htmlspecialchars($sticky_data['duration_days'] ?? 1) ?>">
+                    <small class="text-muted">Số ngày này sẽ dùng để tự động tính ngày về khi lên lịch.</small>
                 </div>
 
                 <!-- TRẠNG THÁI -->

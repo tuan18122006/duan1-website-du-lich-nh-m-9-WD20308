@@ -1,95 +1,63 @@
 <?php
 class BookingModel extends Model
 {
+    // =================================================================
+    // 1. CÁC HÀM CƠ BẢN (Lấy danh sách, Tạo mới, Chi tiết)
+    // =================================================================
 
-    // 1. Lấy danh sách booking
+    // Lấy danh sách booking (Admin)
     public function getAllBookings()
     {
         $sql = "SELECT 
-                    b.id,
-                    b.customer_name,
-                    b.customer_phone,
-                    b.people,
-                    b.total_price,
-                    b.status,
-                    b.start_date,
-                    t.tour_name 
+                    b.id, b.customer_name, b.customer_phone, b.people,
+                    b.total_price, b.status, b.start_date, t.tour_name 
                 FROM bookings b
                 LEFT JOIN tours t ON b.tour_id = t.tour_id
                 ORDER BY b.id DESC";
-
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    // 2. Lấy chi tiết booking (Logic lấy HDV)
+    // Lấy chi tiết booking
     public function getBookingById($id)
     {
-        $sql = "SELECT 
-                    b.*, 
-                    t.tour_name, 
-                    t.tour_type,
-                    -- Logic lấy tên HDV
+        $sql = "SELECT b.*, t.tour_name, t.tour_type,
                     COALESCE(g_custom.full_name, g_standard.full_name, 'Chưa phân công') as guide_name,
                     COALESCE(g_custom.phone, g_standard.phone, '') as guide_phone
                 FROM bookings b
                 JOIN tours t ON b.tour_id = t.tour_id
-                
-                -- 1. Tìm HDV cho Tour Custom (Lưu ở bảng tours)
                 LEFT JOIN guides g_custom ON t.guide_id = g_custom.guide_id
-                
-                -- 2. Tìm HDV cho Tour Mặc định (Lưu ở bảng schedules)
-                -- QUAN TRỌNG: Cần schedule_id ở bảng bookings để join được bảng này
                 LEFT JOIN tour_schedules s ON b.schedule_id = s.schedule_id
                 LEFT JOIN guides g_standard ON s.guide_id = g_standard.guide_id
-                
                 WHERE b.id = :id";
-
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':id' => $id]);
         return $stmt->fetch();
     }
 
-    // 3. Tạo booking mới (ĐÃ CẬP NHẬT: Thêm schedule_id)
+    // Tạo booking mới
     public function createBooking($data)
     {
         $sql = "INSERT INTO bookings (
-                    tour_id, 
-                    schedule_id, 
-                    customer_name, 
-                    customer_phone, 
-                    customer_email, 
-                    customer_address, 
-                    people, 
-                    total_price, 
-                    start_date, 
-                    status, 
-                    note
+                    tour_id, schedule_id, customer_name, customer_phone, 
+                    customer_email, customer_address, people, total_price, 
+                    start_date, status, note
                 ) VALUES (
-                    :tour_id, 
-                    :schedule_id, 
-                    :customer_name, 
-                    :customer_phone, 
-                    :customer_email, 
-                    :customer_address, 
-                    :people, 
-                    :total_price, 
-                    :start_date, 
-                    'Chờ xử lý', 
-                    :note
+                    :tour_id, :schedule_id, :customer_name, :customer_phone, 
+                    :customer_email, :customer_address, :people, :total_price, 
+                    :start_date, 'Chờ xử lý', :note
                 )";
-
         $stmt = $this->db->prepare($sql);
-
         if ($stmt->execute($data)) {
-            // [QUAN TRỌNG] Trả về ID vừa tạo thay vì trả về true
             return $this->db->lastInsertId();
         }
         return false;
     }
 
-    // ... (Các hàm khác giữ nguyên: getBookedSeats, updateAllBookingsStatus, etc.) ...
+    // =================================================================
+    // 2. CÁC HÀM HỖ TRỢ (Update, Đếm chỗ, Feedback...)
+    // =================================================================
 
     public function getBookedSeats($tour_id)
     {
@@ -133,164 +101,155 @@ class BookingModel extends Model
         return $stmt->execute([':status' => $status, ':id' => $id]);
     }
 
-    public function getBookingsByType($tour_type = 0)
-    {
+    public function getBookingsByType($tour_type = 0, $keyword = null, $date = null) {
         $sql = "SELECT b.id, b.customer_name, b.customer_phone, b.people, b.total_price, b.status, b.start_date, t.tour_name
-                FROM bookings b JOIN tours t ON b.tour_id = t.tour_id WHERE t.tour_type = :tour_type ORDER BY b.id DESC";
+                FROM bookings b 
+                JOIN tours t ON b.tour_id = t.tour_id 
+                WHERE t.tour_type = :tour_type";
+        
+        $params = [':tour_type' => $tour_type];
+
+        if ($keyword) {
+            $sql .= " AND (b.customer_name LIKE :kw OR b.customer_phone LIKE :kw OR t.tour_name LIKE :kw)";
+            $params[':kw'] = "%$keyword%";
+        }
+
+        if ($date) {
+            // Tìm theo ngày khởi hành
+            $sql .= " AND DATE(b.start_date) = :date";
+            $params[':date'] = $date;
+        }
+
+        $sql .= " ORDER BY b.id DESC";
+
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':tour_type' => $tour_type]);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
-    // Trong BookingModel.php
 
-    public function addPassengers($booking_id, $passengers)
+    // =================================================================
+    // 3. QUẢN LÝ HÀNH KHÁCH & ĐIỂM DANH (CHECK-IN)
+    // =================================================================
+
+    // Thêm danh sách hành khách lúc đặt tour
+    public function addPassengers($booking_id, $schedule_id, $passengers)
     {
-        // Kiểm tra xem booking_id có hợp lệ không
-        if (!$booking_id) {
-            echo "Lỗi: Không có Booking ID để gắn hành khách!";
-            die();
-        }
+        if (!$booking_id || !$schedule_id) return false;
 
-        $sql = "INSERT INTO booking_passengers (booking_id, full_name, gender, age) 
-            VALUES (:booking_id, :full_name, :gender, :age)";
+        $sql = "INSERT INTO booking_passengers (
+                booking_id, schedule_id, full_name, gender, age, is_present, is_booker
+            ) VALUES (
+                :booking_id, :schedule_id, :full_name, :gender, :age, 0, :is_booker
+            )";
 
         $stmt = $this->db->prepare($sql);
 
-        foreach ($passengers as $index => $p) {
-            // Xử lý dữ liệu: Nếu tuổi rỗng thì để NULL
-            $age = ($p['age'] === '') ? null : $p['age'];
-
+        foreach ($passengers as $p) {
+            $age = ($p['age'] === '') ? null : ($p['age'] ?? null);
+            $is_booker = $p['is_booker'] ?? false;
             try {
-                $status = $stmt->execute([
+                $stmt->execute([
                     ':booking_id' => $booking_id,
-                    ':full_name'  => $p['name'], // Key này khớp với debug của bạn
-                    ':gender'     => $p['gender'],
-                    ':age'        => $age
+                    ':schedule_id' => $schedule_id,
+                    ':full_name'  => $p['name'] ?? 'Khách',
+                    ':gender'     => $p['gender'] ?? 'Chưa rõ',
+                    ':age'        => $age,
+                    ':is_booker'  => $is_booker ? 1 : 0
                 ]);
-
-                // [DEBUG] Nếu Insert thất bại -> In lỗi MySQL ra ngay
-                if (!$status) {
-                    echo "<div style='background:red; color:white; padding:20px;'>";
-                    echo "<h3>LỖI SQL KHI THÊM KHÁCH THỨ $index:</h3>";
-                    print_r($stmt->errorInfo()); // In chi tiết lỗi
-                    echo "</div>";
-                    die(); // Dừng chương trình
-                }
             } catch (Exception $e) {
-                echo "Lỗi Exception: " . $e->getMessage();
-                die();
+                error_log("Lỗi thêm hành khách: " . $e->getMessage());
+                return false;
             }
         }
+        return true;
     }
 
-    // Hàm lấy danh sách khách theo Tour để làm trang quản lý (Cho bước 5)
-    // BookingModel.php
-
+    // Lấy danh sách khách theo Tour (Admin xem)
     public function getPassengersByTour($tour_id)
     {
-        $sql = "SELECT 
-                bp.full_name, 
-                bp.gender, 
-                bp.age, 
-                b.customer_phone, 
-                b.status,
-                s.start_date,
-                
-                /* --- THÊM DÒNG NÀY --- */
-                b.customer_name as booker_name 
-                /* --------------------- */
-
+        $sql = "SELECT bp.full_name, bp.gender, bp.age, b.customer_phone, b.status, s.start_date, b.customer_name as booker_name 
             FROM booking_passengers bp
             JOIN bookings b ON bp.booking_id = b.id
             LEFT JOIN tour_schedules s ON b.schedule_id = s.schedule_id
             WHERE b.tour_id = :tour_id AND b.status != 'Đã hủy'
             ORDER BY s.start_date ASC, b.id ASC";
-
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':tour_id' => $tour_id]);
         return $stmt->fetchAll();
     }
-    // BookingModel.php
 
+    // Lấy danh sách khách theo Schedule (HDV xem để điểm danh)
     public function getPassengersBySchedule($schedule_id)
     {
         $sql = "SELECT 
-                bp.full_name, 
-                bp.gender, 
-                bp.age, /* <--- BẠN PHẢI THÊM DÒNG NÀY VÀO */
-                b.customer_phone, 
-                b.status,
-                b.customer_name as booker_name
-            FROM booking_passengers bp
-            JOIN bookings b ON bp.booking_id = b.id
-            WHERE b.schedule_id = :schedule_id AND b.status != 'Đã hủy'
-            ORDER BY b.id ASC";
-
+            bp.id AS passenger_id, 
+            bp.full_name, 
+            bp.gender,         
+            bp.age,           
+            bp.is_present,  
+            bp.is_booker, 
+            b.customer_phone,
+            b.customer_name AS booker_name
+        FROM booking_passengers bp
+        JOIN bookings b ON bp.booking_id = b.id
+        WHERE bp.schedule_id = :schedule_id AND b.status != 'Đã hủy'
+        ORDER BY b.id ASC"; 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':schedule_id' => $schedule_id]);
         return $stmt->fetchAll();
     }
-// --- PHẦN MỚI: CHỨC NĂNG ĐIỂM DANH (CHECK-IN) ---
 
-    // 1. Lấy danh sách khách của 1 lịch trình (Kèm trạng thái check-in)
-    public function getPassengersByScheduleWithCheckin($schedule_id)
+    // Cập nhật trạng thái điểm danh
+    public function updateCheckinStatus($schedule_id, $present_passenger_ids)
     {
-        $sql = "SELECT 
-                    bp.id as passenger_id, 
-                    bp.full_name, 
-                    bp.gender, 
-                    bp.age, 
-                    bp.is_checked_in,   /* Quan trọng: Lấy trạng thái đã điểm danh chưa */
-                    b.customer_phone, 
-                    b.customer_name as booker_name,
-                    b.status as booking_status
-                FROM booking_passengers bp
-                JOIN bookings b ON bp.booking_id = b.id
-                WHERE b.schedule_id = :sid 
-                AND b.status != 'Đã hủy'
-                ORDER BY b.id ASC";
+        $this->db->beginTransaction();
+        try {
+            // 1. Reset: Đặt TẤT CẢ hành khách của lịch trình này thành VẮNG MẶT (0)
+            $sql_reset = "UPDATE booking_passengers SET is_present = 0 WHERE schedule_id = :schedule_id";
+            $stmt_reset = $this->db->prepare($sql_reset);
+            $stmt_reset->execute([':schedule_id' => $schedule_id]);
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([':sid' => $schedule_id]);
-        return $stmt->fetchAll();
+            // 2. Update: Đặt những hành khách được tick thành CÓ MẶT (1)
+            if (!empty($present_passenger_ids)) {
+                $placeholders = implode(',', array_fill(0, count($present_passenger_ids), '?'));
+                $sql_update = "UPDATE booking_passengers SET is_present = 1 WHERE schedule_id = ? AND id IN ($placeholders)"; 
+
+                $params = array_merge([$schedule_id], $present_passenger_ids);
+
+                $stmt_update = $this->db->prepare($sql_update);
+                $stmt_update->execute($params);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Lỗi transaction điểm danh: " . $e->getMessage());
+            return false;
+        }
     }
 
-    // 2. Reset điểm danh (Cho về 0 hết trước khi lưu cái mới)
-    public function resetCheckinForSchedule($schedule_id) {
-        $sql = "UPDATE booking_passengers bp 
-                JOIN bookings b ON bp.booking_id = b.id
-                SET bp.is_checked_in = 0 
-                WHERE b.schedule_id = :sid";
-        return $this->db->prepare($sql)->execute([':sid' => $schedule_id]);
-    }
-
-    // 3. Cập nhật điểm danh cho 1 khách
-    public function updatePassengerCheckin($passenger_id, $status) {
-        $sql = "UPDATE booking_passengers SET is_checked_in = :status WHERE id = :id";
-        return $this->db->prepare($sql)->execute([':status' => $status, ':id' => $passenger_id]);
-    }
-
-    // 4. Hàm thống kê cho Admin (Xem tiến độ)
+    // --- [BỔ SUNG] HÀM THỐNG KÊ ĐIỂM DANH (Dùng cho OperationController) ---
     public function getCheckInStats($schedule_id) {
-        // Đếm tổng số khách
+        // Đếm tổng số khách (trong các booking không bị hủy)
         $sqlTotal = "SELECT COUNT(*) FROM booking_passengers bp 
                      JOIN bookings b ON bp.booking_id = b.id 
                      WHERE b.schedule_id = :sid AND b.status != 'Đã hủy'";
         
-        // Đếm số khách ĐÃ CHECK-IN
+        // Đếm số khách ĐÃ CÓ MẶT (is_present = 1)
         $sqlChecked = "SELECT COUNT(*) FROM booking_passengers bp 
                        JOIN bookings b ON bp.booking_id = b.id 
-                       WHERE b.schedule_id = :sid AND bp.is_checked_in = 1 AND b.status != 'Đã hủy'";
+                       WHERE b.schedule_id = :sid AND bp.is_present = 1 AND b.status != 'Đã hủy'";
 
-        $total = $this->db->prepare($sqlTotal); $total->execute([':sid' => $schedule_id]);
-        $checked = $this->db->prepare($sqlChecked); $checked->execute([':sid' => $schedule_id]);
+        $stmtTotal = $this->db->prepare($sqlTotal); 
+        $stmtTotal->execute([':sid' => $schedule_id]);
+        
+        $stmtChecked = $this->db->prepare($sqlChecked); 
+        $stmtChecked->execute([':sid' => $schedule_id]);
 
         return [
-            'total' => $total->fetchColumn(),
-            'checked' => $checked->fetchColumn()
+            'total' => $stmtTotal->fetchColumn(),
+            'checked' => $stmtChecked->fetchColumn()
         ];
     }
-
-
-
 }

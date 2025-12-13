@@ -48,6 +48,12 @@
                     <input type="number" name="base_price" class="form-control" required value="<?= $tour['base_price'] ?>">
                 </div>
 
+                <div class="form-group">
+                    <label>Số ngày đi (*)</label>
+                    <input type="number" name="duration_days" class="form-control" required min="1" 
+                        value="<?= $tour['duration_days'] ?>">
+                </div>
+
                 <!-- TRẠNG THÁI -->
                 <div class="form-group">
                     <label>Trạng thái (*)</label>

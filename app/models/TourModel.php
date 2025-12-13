@@ -2,22 +2,18 @@
 
 class TourModel extends Model
 {
-    // 1. LẤY DANH SÁCH TOUR
-// SỬA HÀM NÀY: Thêm điều kiện WHERE tour_type = 0
-public function getAllTour()
-{
-    // Chỉ lấy tour thường (Type = 0), tránh lấy tour custom
-    $sql = "SELECT t.*, c.category_name AS category_name 
-            FROM tours t
-            LEFT JOIN tour_categories c ON t.category_id = c.category_id
-            WHERE t.tour_type = 0  /* <--- THÊM DÒNG NÀY */
-            ORDER BY t.tour_id DESC";
-    $stmt = $this->db->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll();
-}
-
-
+    // 1. LẤY DANH SÁCH TOUR (Chỉ lấy tour thường, Type = 0)
+    public function getAllTour()
+    {
+        $sql = "SELECT t.*, c.category_name AS category_name 
+                FROM tours t
+                LEFT JOIN tour_categories c ON t.category_id = c.category_id
+                WHERE t.tour_type = 0  
+                ORDER BY t.tour_id DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 
     // 2. LẤY TOUR THEO DANH MỤC
     public function getToursByCategoryId($category_id)
@@ -124,10 +120,11 @@ public function getAllTour()
         return $stmt->fetch();
     }
 
-    // 8. LẤY DANH SÁCH HDV
+    // 8. LẤY DANH SÁCH HDV (ĐÃ SỬA: CHỈ LẤY NGƯỜI ĐANG LÀM VIỆC)
     public function getAllGuides()
     {
-        $sql = "SELECT * FROM guides ORDER BY guide_id DESC";
+        // Thêm điều kiện WHERE work_status = 1
+        $sql = "SELECT * FROM guides WHERE work_status = 1 ORDER BY guide_id DESC";
         return $this->db->query($sql)->fetchAll();
     }
 
@@ -144,7 +141,6 @@ public function getAllTour()
         return $stmt->fetchAll();
     }
 
-    // [QUAN TRỌNG] HÀM BẠN ĐANG THIẾU ĐÂY:
     public function getScheduleById($id) {
         $sql = "SELECT * FROM tour_schedules WHERE schedule_id = :id";
         $stmt = $this->db->prepare($sql);
@@ -174,17 +170,30 @@ public function getAllTour()
     }
 
     // --- PHẦN TOUR CUSTOM & BÁO GIÁ ---
-// Hàm này giữ nguyên để dùng cho trang quản lý riêng biệt
-public function getToursByType($type = 0) {
-    $sql = "SELECT t.*, c.category_name 
-            FROM tours t
-            LEFT JOIN tour_categories c ON t.category_id = c.category_id
-            WHERE t.tour_type = :type
-            ORDER BY t.tour_id DESC";
-    $stmt = $this->db->prepare($sql);
-    $stmt->execute([':type' => $type]);
-    return $stmt->fetchAll();
-}
+    public function getToursByType($type = 0, $keyword = null, $category_id = null) {
+        $sql = "SELECT t.*, c.category_name 
+                FROM tours t
+                LEFT JOIN tour_categories c ON t.category_id = c.category_id
+                WHERE t.tour_type = :type";
+        
+        $params = [':type' => $type];
+
+        if ($keyword) {
+            $sql .= " AND t.tour_name LIKE :keyword";
+            $params[':keyword'] = "%$keyword%";
+        }
+
+        if ($category_id && $category_id !== 'Tất cả') {
+            $sql .= " AND t.category_id = :cat_id";
+            $params[':cat_id'] = $category_id;
+        }
+
+        $sql .= " ORDER BY t.tour_id DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 
     public function createCustomTour($data) {
         $sql = "INSERT INTO tours (
@@ -228,7 +237,6 @@ public function getToursByType($type = 0) {
             ]);
         } else {
             $tour = $this->getTourById($id);
-            // Kiểm tra nếu tour tồn tại để tránh lỗi null
             if ($tour) {
                 $this->addSchedule([
                     ':tour_id' => $id,
@@ -262,31 +270,85 @@ public function getToursByType($type = 0) {
         return $this->db->prepare($sql)->fetchAll();
     }
 
-public function getToursByGuide($guide_id) {
-        // ĐÃ THÊM: s.schedule_id vào câu SELECT
+    public function getToursByGuide($guide_id, $keyword = null, $date = null) {
         $sql = "SELECT DISTINCT t.*, s.schedule_id, s.start_date as schedule_start, s.end_date as schedule_end
                 FROM tours t
                 JOIN tour_schedules s ON t.tour_id = s.tour_id
-                WHERE s.guide_id = :guide_id
-                ORDER BY s.start_date DESC";
+                WHERE s.guide_id = :guide_id";
+        
+        $params = [':guide_id' => $guide_id];
+
+        // 1. Tìm theo Tên hoặc Mã
+        if ($keyword) {
+            $sql .= " AND (t.tour_name LIKE :kw OR t.tour_id LIKE :kw)";
+            $params[':kw'] = "%$keyword%";
+        }
+
+        // 2. [THÊM MỚI] Tìm theo Ngày khởi hành
+        if ($date) {
+            // Dùng hàm DATE() để chỉ so sánh ngày, bỏ qua giờ phút
+            $sql .= " AND DATE(s.start_date) = :date";
+            $params[':date'] = $date;
+        }
+
+        $sql .= " ORDER BY s.start_date DESC";
+
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':guide_id' => $guide_id]);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
-    // Thêm vào class TourModel
-public function getAllSchedulesWithDetails() {
-    $sql = "SELECT s.*, t.tour_name, t.image_url, g.full_name as guide_name,
-            (SELECT COUNT(*) FROM bookings b WHERE b.schedule_id = s.schedule_id AND b.status != 'Đã hủy') as total_bookings
-            FROM tour_schedules s
-            JOIN tours t ON s.tour_id = t.tour_id
-            LEFT JOIN guides g ON s.guide_id = g.guide_id
-            ORDER BY s.start_date ASC";
-    return $this->db->query($sql)->fetchAll();
-}
 
-public function updateMeetingPoint($schedule_id, $point) {
-    $sql = "UPDATE tour_schedules SET meeting_point = :point WHERE schedule_id = :id";
-    return $this->db->prepare($sql)->execute([':point' => $point, ':id' => $schedule_id]);
+    public function getAllSchedulesWithDetails($keyword = null, $date = null) {
+        $sql = "SELECT s.*, t.tour_name, t.image_url, g.full_name as guide_name,
+                (SELECT COUNT(*) FROM bookings b WHERE b.schedule_id = s.schedule_id AND b.status != 'Đã hủy') as total_bookings
+                FROM tour_schedules s
+                JOIN tours t ON s.tour_id = t.tour_id
+                LEFT JOIN guides g ON s.guide_id = g.guide_id
+                WHERE 1=1"; // Mẹo: 1=1 để dễ nối chuỗi AND
+        
+        $params = [];
+
+        if ($keyword) {
+            $sql .= " AND (t.tour_name LIKE :keyword OR g.full_name LIKE :keyword)";
+            $params[':keyword'] = "%$keyword%";
+        }
+
+        if ($date) {
+            $sql .= " AND DATE(s.start_date) = :date";
+            $params[':date'] = $date;
+        }
+
+        $sql .= " ORDER BY s.start_date ASC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    public function updateMeetingPoint($schedule_id, $point) {
+        $sql = "UPDATE tour_schedules SET meeting_point = :point WHERE schedule_id = :id";
+        return $this->db->prepare($sql)->execute([':point' => $point, ':id' => $schedule_id]);
+    }
+// File: app/models/TourModel.php
+
+public function checkGuideAvailability($guide_id, $new_start, $new_end) {
+    
+    $sql = "SELECT COUNT(*) FROM tour_schedules 
+            WHERE guide_id = :guide_id 
+            AND start_date < :new_end 
+            AND end_date > :new_start";
+
+    
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([
+        ':guide_id' => $guide_id,
+        ':new_start' => $new_start,
+        ':new_end' => $new_end
+    ]);
+    
+    $count = $stmt->fetchColumn();
+
+    return $count == 0; 
 }
 }
 ?>

@@ -1,98 +1,85 @@
 <div class="container-fluid px-4 mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm mb-2">
-                <i class="bi bi-arrow-left"></i> Quay lại
-            </a>
-            <h4 class="fw-bold text-primary mb-0">Danh sách đoàn khách</h4>
-            <p class="text-muted small mb-0"><?= htmlspecialchars($tour['tour_name']) ?></p>
+            <h3 class="fw-bold text-primary mb-0">Danh sách Khách đoàn</h3>
+            <p class="text-muted mb-0">
+                Tour: <strong><?= htmlspecialchars($tour['tour_name'] ?? 'N/A') ?></strong> 
+                (#<?= $schedule['schedule_id'] ?? 0 ?>)
+            </p>
         </div>
+        <a href="index.php?act=my_tour" class="btn btn-secondary rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+
+    <form action="index.php?act=checkin" method="POST">
+        <input type="hidden" name="schedule_id" value="<?= $schedule['schedule_id'] ?? 0 ?>">
         
-        <div>
-            <button onclick="window.print()" class="btn btn-primary btn-sm">
-                <i class="bi bi-printer"></i> In DS
-            </button>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-6">
-            <div class="p-3 bg-white rounded shadow-sm border-start border-4 border-primary">
-                <small class="text-muted d-block">Tổng khách</small>
-                <span class="fs-4 fw-bold"><?= count($passengers) ?></span> <span class="small">người</span>
+        <div class="card shadow border-0 rounded-4 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold m-0"><i class="bi bi-check2-circle me-2"></i>Bảng Điểm Danh</h5>
+                <div>
+                    <span class="badge bg-light text-dark border me-2">Tổng: <?= count($passengers) ?> khách</span>
+                </div>
             </div>
-        </div>
-        <div class="col-6">
-            <div class="p-3 bg-white rounded shadow-sm border-start border-4 border-success">
-                <small class="text-muted d-block">Khởi hành</small>
-                <span class="fs-5 fw-bold"><?= isset($passengers[0]['start_date']) ? date('d/m', strtotime($passengers[0]['start_date'])) : '...' ?></span>
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body p-0">
-            <div class="table-responsive">
+            
+            <div class="card-body p-0">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
+                    <thead class="bg-light text-secondary">
                         <tr>
-                            <th class="ps-4">#</th>
-                            <th>Họ tên</th>
+                            <th class="ps-4">Họ tên khách</th>
                             <th>Thông tin</th>
                             <th>Liên hệ</th>
+                            <th class="text-center" width="150">Có mặt?</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($passengers)): ?>
-                            <?php foreach ($passengers as $index => $p): ?>
-                            <tr>
-                                <td class="ps-4 text-muted small"><?= $index + 1 ?></td>
-                                
-                                <td>
-                                    <div class="fw-bold text-dark"><?= htmlspecialchars($p['full_name']) ?></div>
-                                    <?php if(empty($p['booker_name'])): ?>
-                                        <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">Trưởng đoàn</span>
-                                    <?php endif; ?>
-                                </td>
-                                
-                                <td>
-                                    <div class="small">
-                                        <i class="bi bi-person"></i> <?= $p['gender'] ?> 
-                                        <span class="text-muted mx-1">|</span> 
-                                        <?= $p['age'] ? $p['age'] . ' tuổi' : '?? tuổi' ?>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">
-                                        <i class="bi bi-person-badge-fill text-secondary me-1"></i>
-                                        <?php 
-                                            // Nếu có tên người đặt riêng thì hiện, nếu không thì lấy tên hành khách (trưởng đoàn)
-                                            echo !empty($p['booker_name']) ? htmlspecialchars($p['booker_name']) : htmlspecialchars($p['full_name']); 
-                                        ?>
-                                    </div>
-
-                                    <div class="mt-1">
-                                        <?php if (!empty($p['customer_phone'])): ?>
-                                            <a class="text-decoration-none text-success small fw-bold border border-success rounded-pill px-2 py-1 d-inline-block bg-light">
-                                                <i class="bi bi-telephone-fill me-1"></i> <?= $p['customer_phone'] ?>
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="text-muted small fst-italic">---</span>
+                            <?php foreach ($passengers as $p): ?>
+                                <tr class="<?= $p['is_present'] ? 'table-success' : '' ?>">
+                                    <td class="ps-4 fw-bold">
+                                        <?= htmlspecialchars($p['full_name']) ?>
+                                        <?php if($p['is_booker']): ?>
+                                            <span class="badge bg-info text-dark ms-2" style="font-size: 0.7rem">Người đặt</span>
                                         <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td>
+                                        <div class="small text-muted"><?= $p['gender'] ?>, <?= $p['age'] ?> tuổi</div>
+                                    </td>
+                                    <td>
+                                        <div class="small"><?= htmlspecialchars($p['customer_phone']) ?></div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="passenger_ids[]" 
+                                                   value="<?= $p['passenger_id'] ?? $p['id'] ?>" 
+                                                   style="transform: scale(1.3); cursor: pointer;"
+                                                   <?= $p['is_present'] ? 'checked' : '' ?>>
+                                        </div>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="4" class="text-center py-4 text-muted">Chưa có khách nào.</td></tr>
+                            <tr><td colspan="4" class="text-center py-5 text-muted">Chưa có khách trong danh sách.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
-    
-    <div class="alert alert-info mt-3 small">
-        <i class="bi bi-info-circle me-1"></i> Lưu ý: Hãy kiểm tra danh sách trước khi khởi hành 30 phút.
-    </div>
+
+        <div class="card shadow-sm border-0 fixed-bottom m-3 m-md-4 rounded-4 bg-white" style="max-width: 600px; margin-left: auto !important;">
+            <div class="card-body d-flex align-items-center justify-content-between p-3">
+                <div>
+                    <label class="fw-bold small d-block mb-1">Ghi chú nhanh (Optional):</label>
+                    <input type="text" name="note" class="form-control form-control-sm" placeholder="VD: Đón khách muộn 10p...">
+                </div>
+                <button type="submit" class="btn btn-primary fw-bold px-4 rounded-pill shadow-sm ms-3">
+                    <i class="bi bi-save me-2"></i> LƯU ĐIỂM DANH
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
+
+<div style="height: 100px;"></div>

@@ -31,6 +31,24 @@
                         <?php endif; ?>
                     </select>
                 </div>
+                    <form method="GET" class="row g-3 mb-4">
+                    <input type="hidden" name="act" value="<?= $_GET['act'] ?>">
+                    <?php if(isset($_GET['type'])): ?>
+                        <input type="hidden" name="type" value="<?= $_GET['type'] ?>">
+                    <?php endif; ?>
+
+                    <div class="col-md-8">
+                        <input type="text" name="keyword" class="form-control" 
+                            placeholder="Nhập từ khóa tìm kiếm..." 
+                            value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="index.php?act=<?= $_GET['act'] ?><?= isset($_GET['type']) ? '&type='.$_GET['type'] : '' ?>" class="btn btn-outline-secondary w-100">Reset</a>
+                    </div>
+                    </form>
             </div>
         </div>
     </div>
@@ -100,7 +118,7 @@
                                 <a href="index.php?act=tour_passenger_list&id=<?= $tour['tour_id'] ?>" 
                                 class="btn btn-success btn-sm me-1" 
                                 title="Danh sách khách đoàn chi tiết">
-                                <i class="fas fa-users"></i> DS Khách
+                                <i class="fas fa-users"></i>
                                 </a>
 
                                 <a href="index.php?act=update_tour&id=<?= $tour['tour_id'] ?>" 

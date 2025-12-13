@@ -1,7 +1,4 @@
 <?php
-    // LOGIC TO DETERMINE BACK LINK
-    // If it's a custom tour (type=1), go back to custom booking list
-    // Otherwise, go back to standard booking list
     $back_act = (isset($booking['tour_type']) && $booking['tour_type'] == 1) 
                 ? 'custom_booking_list' 
                 : 'booking_list';

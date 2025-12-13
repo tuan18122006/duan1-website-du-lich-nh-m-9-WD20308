@@ -142,7 +142,88 @@ $chart_labels = $chart_labels ?? ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'
             </div>
         </div>
     </div>
+<div class="row mt-5">
+        <div class="col-12">
+            <h5 class="text-uppercase fw-bold text-secondary mb-3">
+                <i class="fas fa-history me-2"></i> Lịch sử Giao dịch mới nhất
+            </h5>
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <table class="table table-striped table-hover mb-0 align-middle">
+                        <thead class="bg-dark text-white">
+                            <tr>
+                                <th class="py-3 ps-4">Mã đơn</th>
+                                <th class="py-3">Khách hàng</th>
+                                <th class="py-3">Tên Tour</th>
+                                <th class="py-3">Tổng tiền</th>
+                                <th class="py-3">Ngày đặt</th>
+                                <th class="py-3">Trạng thái</th>
+                                <th class="py-3 text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if(!empty($recent_transactions)): ?>
+                                <?php foreach($recent_transactions as $t): ?>
+                                <tr>
+                                    <td class="ps-4 fw-bold text-secondary">#<?= $t['id'] ?></td>
+                                    <td>
+                                        <div class="fw-bold text-dark"><?= htmlspecialchars($t['customer_name']) ?></div>
+                                        <small class="text-muted"><?= htmlspecialchars($t['customer_phone']) ?></small>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 300px;" title="<?= htmlspecialchars($t['tour_name']) ?>">
+                                            <?= htmlspecialchars($t['tour_name']) ?>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold text-danger">
+                                        <?= number_format($t['total_price'] ?? 0) ?> đ
+                                    </td>
+                                    <td>
+                                        <?= date('H:i - d/m/Y', strtotime($t['created_at'])) ?>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                            $st = $t['status'];
+                                            $badge = match($st) {
+                                                'Hoàn thành' => 'bg-success',
+                                                'Đã hủy' => 'bg-danger',
+                                                'Đã xác nhận' => 'bg-primary',
+                                                'Chờ xử lý' => 'bg-warning text-dark',
+                                                default => 'bg-secondary'
+                                            };
+                                        ?>
+                                        <span class="badge <?= $badge ?>"><?= $st ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="index.php?act=booking_detail&id=<?= $t['id'] ?>" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            Xem chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        Chưa có giao dịch nào gần đây.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="text-end mt-3">
+                <a href="index.php?act=booking_list" class="text-decoration-none fw-bold text-primary">
+                    Xem tất cả đơn hàng <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
 
+</div> ```
 </div>
 
 <script>

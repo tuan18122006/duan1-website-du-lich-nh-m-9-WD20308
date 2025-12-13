@@ -250,12 +250,6 @@
                     <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
             </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?= ($act == 'tour_history') ? 'active' : '' ?>" href="index.php?act=tour_history">
-                    <i class="fas fa-history me-2"></i> Lịch sử Tour
-                </a>
-            </li>
             <li class="nav-item">
                 <a class="nav-link <?= $activeUserParent ?>" href="#subMenuUser" data-bs-toggle="collapse" aria-expanded="<?= $userExpanded ?>">
                     <i class="bi bi-people me-2"></i> Quản lý tài khoản 
@@ -331,12 +325,6 @@
             <li class="nav-item">
                 <a class="nav-link <?= ($act == 'departure_management') ? 'active' : '' ?>" href="index.php?act=departure_management">
                     <i class="fas fa-plane-departure me-2"></i> Quản lý Khởi hành
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?= ($act == 'checkin_overview') ? 'active' : '' ?>" href="index.php?act=checkin_overview">
-                    <i class="fas fa-clipboard-check me-2"></i> QL Đoàn & Check-in
                 </a>
             </li>
             <li class="nav-item mt-3 px-3">

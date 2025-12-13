@@ -23,7 +23,25 @@
             </a>
         <?php endif; ?>
     </div>
-
+    <form method="GET" class="row g-3 mb-4 p-3 bg-white rounded shadow-sm">
+        <input type="hidden" name="act" value="<?= $_GET['act'] ?>">
+        
+        <div class="col-md-5">
+            <input type="text" name="keyword" class="form-control" 
+                placeholder="Tìm theo tên tour, khách hàng, HDV..." 
+                value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="date" class="form-control" 
+                value="<?= htmlspecialchars($_GET['date'] ?? '') ?>">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Tìm</button>
+        </div>
+        <div class="col-md-2">
+            <a href="index.php?act=<?= $_GET['act'] ?>" class="btn btn-outline-secondary w-100">Đặt lại</a>
+        </div>
+    </form>
     <div class="card shadow border-0 rounded-4">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 fw-bold text-secondary">Danh sách đơn hàng</h5>
