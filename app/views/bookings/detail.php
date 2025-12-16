@@ -108,9 +108,9 @@
                             default => 'alert-secondary'
                         };
                     ?>
-                    <div class="alert <?= $alertClass ?> fw-bold mb-4">
-                        <?= strtoupper($st) ?>
-                    </div>
+                <div class="alert <?= $alertClass ?> fw-bold mb-4 text-uppercase">
+                    <?= $st ?>
+                </div>
 
                     <div class="d-grid gap-2">
                         <?php if ($st != 'Hoàn thành' && $st != 'Đã hủy'): ?>

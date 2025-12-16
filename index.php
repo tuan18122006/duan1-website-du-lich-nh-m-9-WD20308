@@ -110,7 +110,7 @@ switch ($act) {
     case 'update_guide':    (new GuideController())->update(); break;
     case 'detail_guide':    (new GuideController())->detail(); break;
     case 'delete_guide':    (new GuideController())->delete(); break;
-
+    case 'assigned_tours':  (new GuideController())->assignedTours(); break;
     // ===================================================
     // GIAO DIỆN DÀNH RIÊNG CHO HDV (GUIDE PORTAL)
     // ===================================================
@@ -121,8 +121,13 @@ switch ($act) {
     case 'my_tour':
         (new GuideController())->myTour();
         break;
+    
+    // [MỚI] Xem và Cập nhật Hồ sơ HDV
+    case 'guide_profile':
+        (new GuideController())->profile();
+        break;
 
-    case 'checkin': // Xử lý Form điểm danh
+    case 'checkin':
         (new GuideController())->checkin();
         break;
 
@@ -133,6 +138,7 @@ switch ($act) {
     case 'guide_passenger_list':
         (new GuideController())->passengerList();
         break;
+
 
     // --- QUẢN LÝ BOOKING (ĐƠN ĐẶT TOUR) ---
     case 'booking_list':        (new BookingController())->index(); break;
@@ -150,7 +156,6 @@ switch ($act) {
 
     // --- DEFAULT (404) ---
     default:
-        // Nếu không tìm thấy trang, tự động điều hướng về trang chủ phù hợp
         if(isset($_SESSION['user'])) {
             if($_SESSION['user']['role'] == 2) {
                 (new GuideController())->dashboard();
@@ -158,7 +163,6 @@ switch ($act) {
                 (new DashboardController())->showDashboardCategory();
             }
         } else {
-            // Chưa đăng nhập thì về welcome
              (new WelcomeController())->index();
         }
         break;

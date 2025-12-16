@@ -117,9 +117,7 @@
         }
 
 
-        /* =========================
-           MAIN CONTENT
-        ========================== */
+
         .main-content {
             margin-top: var(--header-height);
             margin-left: var(--sidebar-width);
@@ -132,9 +130,6 @@
 
 <body>
 
-    <!-- ======================================
-         1. TOP HEADER
-    ======================================= -->
     <header class="top-header">
         <div class="d-flex align-items-center gap-3">
             <button class="btn-toggle-sidebar" id="sidebarToggle">
@@ -147,23 +142,47 @@
         </div>
 
         <div class="d-flex align-items-center gap-3">
-            <a class="btn btn-light border-0 d-flex align-items-center gap-2 rounded-pill px-3" href="#" role="button" data-bs-toggle="dropdown">
-                <span class="fw-semibold">Xin chào, <?= $_SESSION['user']['name'] ?? 'HDV' ?></span>
-                <i class="fa-solid fa-circle-user fs-4 text-secondary"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-                <li><a class="dropdown-item text-danger" href="index.php?act=logout">Đăng xuất</a></li>
-            </ul>
+            <div class="dropdown">
+                <a class="btn btn-light border-0 d-flex align-items-center gap-2 rounded-pill px-3" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="fw-semibold d-none d-md-block">Xin chào, <?= $_SESSION['user']['name'] ?? 'HDV' ?></span>
+                    
+                    <?php
+                        // Xử lý hiển thị Avatar
+                        $userAvatar = $_SESSION['user']['avatar'] ?? '';
+                        $avatarPath = "assets/uploads/" . $userAvatar;
+                        
+                        // Kiểm tra file có tồn tại không
+                        if (!empty($userAvatar) && file_exists($avatarPath)) {
+                            $displayAvatar = $avatarPath;
+                        } else {
+                            // Đường dẫn ảnh mặc định (đảm bảo bạn có file này)
+                            $displayAvatar = "assets/uploads/default-avatar.png"; 
+                        }
+                    ?>
+                    
+                    <img src="<?= $displayAvatar ?>" 
+                        alt="User Avatar" 
+                        class="rounded-circle object-fit-cover border" 
+                        style="width: 40px; height: 40px;">
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="index.php?act=guide_profile">
+                            <i class="bi bi-person-circle me-2"></i> Hồ sơ cá nhân
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger d-flex align-items-center" href="index.php?act=logout">
+                            <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </header>
 
-    <!-- ======================================
-         2. SIDEBAR HDV
-    ======================================= -->
     <aside class="sidebar-hdv">
         <div class="sidebar-title">Menu HDV</div>
 
@@ -184,20 +203,15 @@
         </div>
     </aside>
 
-    <!-- ======================================
-         3. MAIN CONTENT
-    ======================================= -->
     <main class="main-content">
         <div class="content-body-wrapper">
             <?php
 
-            // ***** FIX LỖI SCOPE: TRÍCH XUẤT BIẾN TỪ CONTROLLER *****
             if (isset($GLOBALS['view_data']) && is_array($GLOBALS['view_data'])) {
                 extract($GLOBALS['view_data']);
-                // Sau khi extract, $guide_model, $current_guide_id, $tours đã có sẵn ở đây
+
                 unset($GLOBALS['view_data']); // Dọn dẹp
             }
-            // ******************************************************
 
             $final_path = "";
 
@@ -214,7 +228,6 @@
         </div>
     </main>
 
-    <!-- JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>

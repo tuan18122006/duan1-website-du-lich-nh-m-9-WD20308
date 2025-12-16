@@ -193,29 +193,39 @@ function generatePassengerForms() {
     let count = document.getElementById('peopleInput').value;
     let container = document.getElementById('passengerList');
     
-    if (count < 1) return;
     container.innerHTML = '';
 
-    for (let i = 0; i < count; i++) {
+    // LOGIC ĐÚNG:
+    // Người số 1 là "Thông tin khách hàng" bên trái.
+    // Form này chỉ sinh ra cho người thứ 2 trở đi.
+    // Ví dụ: Nhập 1 -> Không hiện form nào. Nhập 2 -> Hiện 1 form.
+
+    if (count <= 1) {
+        container.innerHTML = '<div class="col-12 text-muted fst-italic small">Khách hàng chính là người đặt tour.</div>';
+        return;
+    }
+
+    // Chạy từ 1 đến < count (Tức là bỏ qua người số 0 - người đặt)
+    for (let i = 1; i < count; i++) {
         let html = `
             <div class="col-md-6">
                 <div class="card bg-light border-0 shadow-sm mb-3">
                     <div class="card-body p-2">
                         <div class="d-flex justify-content-between">
-                            <strong class="text-primary small">#${i + 1} Hành khách</strong>
+                            <strong class="text-primary small">Hành khách #${i + 1}</strong>
                         </div>
                         
                         <div class="mt-2 mb-2">
                             <input type="text" name="passengers[${i}][name]" 
                                    class="form-control form-control-sm" 
-                                   placeholder="Họ tên khách ${i + 1}" required>
+                                   placeholder="Họ tên khách" required>
                         </div>
 
                         <div class="row g-2">
                             <div class="col-6">
                                 <input type="number" name="passengers[${i}][age]" 
                                        class="form-control form-control-sm" 
-                                       placeholder="Nhập tuổi" min="1" required>
+                                       placeholder="Tuổi" min="1">
                             </div>
                             <div class="col-6">
                                 <select name="passengers[${i}][gender]" class="form-select form-select-sm">

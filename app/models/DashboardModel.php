@@ -12,11 +12,12 @@ class DashboardModel extends Model {
 
 // 1. Hàm lấy thống kê tổng (Thêm tham số $date_custom)
 public function getRevenueStats($filter = 'year', $date_custom = null) {
-    $sql = "SELECT 
+$sql = "SELECT 
                 SUM(total_price) as total_money, 
-                SUM(people) as total_people
+                SUM(people) as total_people,
+                COUNT(*) as total_bookings 
             FROM bookings 
-            WHERE status = 'Hoàn thành'"; 
+            WHERE status = 'Hoàn thành'";
 
     if ($filter == 'today') {
         $sql .= " AND DATE(created_at) = CURDATE()";
@@ -33,7 +34,8 @@ public function getRevenueStats($filter = 'year', $date_custom = null) {
     
     return [
         'total_money' => $result['total_money'] ?? 0,
-        'total_people' => $result['total_people'] ?? 0
+        'total_people' => $result['total_people'] ?? 0,
+        'total_bookings' => $result['total_bookings'] ?? 0 // [MỚI]: Trả về số lượng booking
     ];
 }
 

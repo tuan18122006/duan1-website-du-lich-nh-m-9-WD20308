@@ -190,53 +190,58 @@
                 <i class="fa-solid fa-layer-group me-2"></i>TRANG QUẢN LÝ
             </h4>
         </div>
-
         <div class="d-flex align-items-center gap-3">
-            <!-- Ô tìm kiếm -->
-            <div class="input-group search-input d-none d-md-flex" style="width: 300px;">
-                <input class="form-control rounded-start-pill bg-light border-end-0" placeholder="Tìm kiếm..." />
-                <button class="btn btn-light border border-start-0 rounded-end-pill"><i class="bi bi-search"></i></button>
-            </div>
-
-            <!-- Avatar Admin -->
             <div class="dropdown">
-                <a class="btn btn-light border-0 d-flex align-items-center gap-2 rounded-pill px-3" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fa-solid fa-circle-user fs-4 text-secondary"></i>
-                    <span class="d-none d-sm-block small fw-bold text-dark">Admin</span>
+                <a class="btn btn-light border-0 d-flex align-items-center gap-2 rounded-pill px-3" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="fw-semibold d-none d-md-block">Xin chào, <?= $_SESSION['user']['name'] ?? 'HDV' ?></span>
+                    
+                    <?php
+                        // Xử lý hiển thị Avatar
+                        $userAvatar = $_SESSION['user']['avatar'] ?? '';
+                        $avatarPath = "assets/uploads/" . $userAvatar;
+                        
+                        // Kiểm tra file có tồn tại không
+                        if (!empty($userAvatar) && file_exists($avatarPath)) {
+                            $displayAvatar = $avatarPath;
+                        } else {
+                            // Đường dẫn ảnh mặc định (đảm bảo bạn có file này)
+                            $displayAvatar = "assets/uploads/default-avatar.png"; 
+                        }
+                    ?>
+                    
+                    <img src="<?= $displayAvatar ?>" 
+                        alt="User Avatar" 
+                        class="rounded-circle object-fit-cover border" 
+                        style="width: 40px; height: 40px;">
                 </a>
+
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                    <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="index.php?act=logout">Đăng xuất</a></li>
+                    <li>
+                        <a class="dropdown-item text-danger d-flex align-items-center" href="index.php?act=logout">
+                            <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </header>
 
-    <!-- =============================================
-         2. SIDEBAR (CÓ LOGIC PHP)
-         ============================================= -->
 <nav class="sidebar">
         <?php
         $act = $_GET['act'] ?? 'dashboard';
 
-        // --- 1. LOGIC MENU TÀI KHOẢN ---
         $userActs = ['listkh', 'addkh', 'editkh', 'detailkh', 'list_guide', 'add_guide', 'edit_guide', 'detail_guide'];
         $isUserActive = in_array($act, $userActs);
         $showUserMenu = $isUserActive ? 'show' : '';
         $userExpanded = $isUserActive ? 'true' : 'false';
         $activeUserParent = $isUserActive ? 'active' : 'collapsed';
 
-        // --- 2. LOGIC MENU TOUR (MỚI) ---
-        // Bao gồm cả tour thường và tour custom
         $tourActs = ['tour_list', 'add_tour', 'update_tour', 'tour_bookings', 'tour_schedules', 'detail_tour', 'custom_tour_list'];
         $isTourActive = in_array($act, $tourActs);
         $showTourMenu = $isTourActive ? 'show' : '';
         $tourExpanded = $isTourActive ? 'true' : 'false';
         $activeTourParent = $isTourActive ? 'active' : 'collapsed';
 
-        // --- 3. LOGIC MENU BOOKING (MỚI) ---
-        // Bao gồm cả booking thường và booking custom
         $bookingActs = ['booking_list', 'booking_detail', 'booking_add', 'custom_booking_list'];
         $isBookingActive = in_array($act, $bookingActs);
         $showBookingMenu = $isBookingActive ? 'show' : '';
@@ -332,9 +337,7 @@
             </li>
         </ul>
     </nav>
-    <!-- =============================================
-         3. MAIN CONTENT
-         ============================================= -->
+>
     <main class="main-content">
         <div class="content-body-wrapper">
             <?php
@@ -351,9 +354,6 @@
         </div>
     </main>
 
-    <!-- =============================================
-         4. MOBILE SIDEBAR (OFFCANVAS)
-         ============================================= -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar">
         <div class="offcanvas-header border-bottom">
             <h5 class="offcanvas-title fw-bold text-primary">

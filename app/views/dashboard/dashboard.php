@@ -83,20 +83,20 @@ $chart_labels = $chart_labels ?? ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
-            <div class="card stat-card">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-box icon-box-primary">
-                        <i class="bi bi-map"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label">Tổng số Tour</div>
-                        <div class="stat-value"><?= $total_tours ?></div>
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="icon-box icon-box-primary">
+                            <i class="bi bi-map"></i>
+                        </div>
+                        <div>
+                            <div class="stat-label">Số Booking</div>
+                            <div class="stat-value"><?= number_format($total_bookings ?? 0) ?></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
         <div class="col-12 col-md-4">
             <div class="card stat-card">

@@ -22,9 +22,7 @@ class DashboardController extends Controller
 
         // 3. GỌI MODEL LẤY SỐ LIỆU
         // - Thống kê doanh thu & khách
-        $stats = $this->dashboardModel->getRevenueStats($filter, $date_custom); 
-        // - Tổng số tour
-        $countTours = $this->dashboardModel->countTotalTours();
+        $stats = $this->dashboardModel->getRevenueStats($filter, $date_custom);
         // - Dữ liệu biểu đồ
         $rawData = $this->dashboardModel->getChartData($filter, $date_custom);
         // - [MỚI] Lấy 10 giao dịch gần nhất
@@ -71,21 +69,21 @@ class DashboardController extends Controller
 
         // 5. ĐÓNG GÓI DỮ LIỆU & HIỂN THỊ VIEW
         $data = [
-            'total_tours'         => $countTours,           
-            'total_revenue'       => $stats['total_money'], 
-            'total_customers'     => $stats['total_people'],
-            'chart_data_json'     => json_encode($chart_data),
-            'chart_labels'        => $chart_labels,         
-            'currentFilter'       => $filter,
-            'date_custom'         => $date_custom,
-            'recent_transactions' => $recent_transactions // Truyền danh sách giao dịch sang View
-        ];
+                'total_bookings'      => $stats['total_bookings'],
+                'total_revenue'       => $stats['total_money'], 
+                'total_customers'     => $stats['total_people'],
+                'chart_data_json'     => json_encode($chart_data),
+                'chart_labels'        => $chart_labels,         
+                'currentFilter'       => $filter,
+                'date_custom'         => $date_custom,
+                'recent_transactions' => $recent_transactions 
+            ];
 
-        extract($data); 
+            extract($data); 
 
-        $view_path = "./app/views/dashboard/dashboard.php";
-        require_once "./app/views/layouts/main.php";
-    }
+            $view_path = "./app/views/dashboard/dashboard.php";
+            require_once "./app/views/layouts/main.php";
+        }
 
     // --- FUNCTION 2: DASHBOARD GUIDE ---
     public function guideHome()

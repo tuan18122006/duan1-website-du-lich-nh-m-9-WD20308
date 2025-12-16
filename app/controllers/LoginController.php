@@ -21,12 +21,12 @@ class LoginController extends Controller
         $user = $this->loginModel->checkLogin($username, $password);
 
         if ($user) {
-
             $_SESSION['user'] = [
-                'id'       => $user['id'],
-                'name'     => $user['fullname'] ?? $user['username'],
+                'id'       => $user['user_id'], 
+                'name'     => $user['full_name'] ?? $user['username'],
                 'role'     => $user['role'],
-                'guide_id' => $user['guide_id'] ?? null
+                'guide_id' => $user['guide_id'] ?? null,
+                'avatar'   => $user['avatar'] ?? '' 
             ];
 
             if ($user['role'] == 1) {

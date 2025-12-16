@@ -24,16 +24,27 @@ class GuideModel extends Model
         }
     }
 
-    // Lấy chi tiết 1 HDV
     public function getGuideById($user_id)
     {
-        $sql = "SELECT u.*, g.experience_years, g.languages, g.guide_id, g.work_status 
+        // Đã sửa: Chọn rõ ràng các trường, xử lý null bằng COALESCE
+        $sql = "SELECT 
+                    u.user_id, u.username, u.full_name, u.email, u.phone, u.birthday, u.avatar,
+                    g.guide_id, 
+                    COALESCE(g.experience_years, 0) as experience_years, 
+                    COALESCE(g.languages, '') as languages,
+                    COALESCE(g.work_status, 1) as work_status
                 FROM users u 
                 LEFT JOIN guides g ON u.user_id = g.user_id 
                 WHERE u.user_id = :id AND u.role = 2";
+                
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':id' => $user_id]);
-        return $stmt->fetch();
+        $result = $stmt->fetch();
+        
+        // Nếu không tìm thấy user role 2, trả về false
+        if (!$result) return false;
+        
+        return $result;
     }
 
     // Thêm mới (Transaction)

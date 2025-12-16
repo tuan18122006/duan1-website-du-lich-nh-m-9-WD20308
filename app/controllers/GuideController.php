@@ -278,4 +278,111 @@ public function checkinHistory()
     $view_path = "./app/views/guide/checkinHistory.php";
     require_once "./app/views/layouts/guideHeader.php";
 }
+// File: GuideController.php
+
+public function profile()
+{
+    // 1. Kiểm tra đăng nhập
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 2) {
+        header("Location: index.php?act=login");
+        exit;
+    }
+
+    $user_id = $_SESSION['user']['id'];
+    
+    // 2. Lấy thông tin
+    $guideInfo = $this->guideModel->getGuideById($user_id);
+
+    // Debug: Nếu vẫn lỗi, uncomment 2 dòng dưới để xem ID là gì
+    // var_dump($user_id, $guideInfo); die(); 
+
+    if (!$guideInfo) {
+        // Fallback: Nếu không lấy được bằng Model Guide, lấy bằng Model User
+        $guideInfo = $this->userModel->getOne($user_id);
+        if (!$guideInfo) {
+            session_destroy(); // Xóa session lỗi
+            echo "<script>alert('Tài khoản lỗi! Vui lòng đăng nhập lại.'); window.location.href='index.php?act=login';</script>";
+            exit;
+        }
+        // Gán giá trị mặc định để tránh lỗi View
+        $guideInfo['experience_years'] = 0;
+        $guideInfo['languages'] = '';
+    }
+
+    // 3. Xử lý CẬP NHẬT (POST)
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        
+        // 3.1 Xử lý ảnh
+        $avatar = $guideInfo['avatar'] ?? '';
+        if (isset($_FILES['avatar']) && $_FILES['avatar']['size'] > 0) {
+            $uploadDir = "assets/uploads/";
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+            $safeName = time() . '_' . str_replace(' ', '_', $_FILES['avatar']['name']);
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadDir . $safeName)) {
+                $avatar = $safeName;
+                $_SESSION['user']['avatar'] = $avatar;
+            }
+        }
+
+        // 3.2 Gom dữ liệu
+        $dataUser = [
+            'full_name' => $_POST['full_name'],
+            'email'     => $_POST['email'],
+            'phone'     => $_POST['phone'],
+            'birthday'  => $_POST['birthday'],
+            'avatar'    => $avatar,
+            'password'  => !empty($_POST['password']) ? $_POST['password'] : null
+        ];
+        
+        $dataGuide = [
+            'experience_years' => $_POST['experience_years'] ?? 0,
+            'languages'        => $_POST['languages'] ?? ''
+        ];
+
+        // 3.3 Gọi Model Update
+        // Lưu ý: Hàm updateGuide của bạn dùng Transaction, nên nếu bảng guides chưa có dòng nào
+        // thì lệnh UPDATE guides ... sẽ không có tác dụng.
+        // Tuy nhiên, với logic hiển thị, chỉ cần update users thành công là được.
+        
+        if ($this->guideModel->updateGuide($user_id, $dataUser, $dataGuide)) {
+            $_SESSION['success'] = "Cập nhật thành công!";
+            header("Location: index.php?act=guide_profile");
+            exit;
+        } else {
+            $_SESSION['error'] = "Có lỗi xảy ra!";
+        }
+    }
+
+    // 4. Render View
+    $GLOBALS['view_data'] = ['guide' => $guideInfo];
+    $view_path = "./app/views/guide/profile.php";
+    require_once "./app/views/layouts/guideHeader.php";
+}
+public function assignedTours()
+    {
+        // 1. Lấy ID từ URL
+        $user_id = $_GET['id'] ?? 0;
+
+        // 2. Lấy thông tin HDV (Chỉ để lấy tên hiển thị tiêu đề)
+        $guide = $this->guideModel->getGuideById($user_id);
+
+        if ($guide) {
+            // 3. Lấy danh sách tour
+            $tours = $this->tourModel->getToursByGuide($guide['guide_id']);
+
+            // 4. Truyền dữ liệu
+            $GLOBALS['view_data'] = [
+                'guide' => $guide,
+                'tours' => $tours
+            ];
+
+            // Trỏ đến file view mới (chỉ có bảng tour)
+            $view_path = "app/views/operations/assigned_tours.php"; 
+            
+            require_once "./app/views/layouts/main.php";
+        } else {
+            $_SESSION['error'] = "Không tìm thấy HDV!";
+            header('Location: index.php?act=hr_management');
+        }
+    }
 }

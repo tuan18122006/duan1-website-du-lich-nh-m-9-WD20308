@@ -38,45 +38,69 @@
                     </tr>
                 </thead>
                 <tbody>
-                <?php foreach($guides as $g): ?>
-                    <tr>
-                        <td class="ps-4 fw-bold">
-                            <img src="assets/uploads/<?= $g['avatar'] ?>" class="rounded-circle me-2" width="40" height="40">
-                            <?= htmlspecialchars($g['full_name']) ?>
-                        </td>
-                        <td><?= $g['phone'] ?><br><small class="text-muted"><?= $g['email'] ?></small></td>
-                        <td><?= $g['experience_years'] ?> năm</td>
-                        <td>
-                        <?php 
-                            // Dùng toán tử ?? để gán mặc định là 1 (Sẵn sàng) nếu không tìm thấy cột work_status
-                            $status = $guide['work_status'] ?? 1; 
-                        ?>
+                    <?php if (!empty($guides)): ?>
+                        <?php foreach($guides as $g): ?>
+                            <tr>
+                                <td class="ps-4 fw-bold">
+                                    <?php 
+                                        $avatar = !empty($g['avatar']) ? "assets/uploads/" . $g['avatar'] : "assets/images/default-avatar.png"; 
+                                    ?>
+                                    <img src="<?= $avatar ?>" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+                                    
+                                    <a href="index.php?act=detail_guide&id=<?= $g['user_id'] ?>" class="text-decoration-none text-dark">
+                                        <?= htmlspecialchars($g['full_name']) ?>
+                                    </a>
+                                </td>
+                                <td>
+                                    <?= $g['phone'] ?><br>
+                                    <small class="text-muted"><?= $g['email'] ?></small>
+                                </td>
+                                <td><?= $g['experience_years'] ?> năm</td>
+                                <td>
+                                <?php 
+                                    // SỬA LỖI: Dùng biến $g thay vì $guide
+                                    $status = $g['work_status'] ?? 1; 
+                                ?>
 
-                        <?php if ($status == 1): ?>
-                            <span class="badge bg-success">Sẵn sàng</span>
-                        <?php else: ?>
-                            <span class="badge bg-secondary">Nghỉ phép</span>
-                        <?php endif; ?>
-                        </td>
-                        <td>
-                            <form method="POST" class="d-inline">
-                                <input type="hidden" name="guide_id" value="<?= $g['guide_id'] ?>">
-                                <?php if($g['work_status'] == 1): ?>
-                                    <input type="hidden" name="status" value="0">
-                                    <button type="submit" name="update_status" class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-bed me-1"></i> Cho nghỉ phép
-                                    </button>
+                                <?php if ($status == 1): ?>
+                                    <span class="badge bg-success">Sẵn sàng</span>
                                 <?php else: ?>
-                                    <input type="hidden" name="status" value="1">
-                                    <button type="submit" name="update_status" class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-briefcase me-1"></i> Gọi đi làm
-                                    </button>
+                                    <span class="badge bg-secondary">Nghỉ phép</span>
                                 <?php endif; ?>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                    <a href="index.php?act=assigned_tours&id=<?= $g['user_id'] ?>" 
+                                    class="btn btn-sm btn-outline-info" 
+                                    title="Xem danh sách tour">
+                                        <i class="fas fa-list-ul me-1"></i> Xem Tour
+                                    </a>
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="guide_id" value="<?= $g['guide_id'] ?>">
+                                            <?php if($g['work_status'] == 1): ?>
+                                                <input type="hidden" name="status" value="0">
+                                                <button type="submit" name="update_status" class="btn btn-sm btn-outline-danger" title="Cho nghỉ phép">
+                                                    <i class="fas fa-bed"></i> Nghỉ
+                                                </button>
+                                            <?php else: ?>
+                                                <input type="hidden" name="status" value="1">
+                                                <button type="submit" name="update_status" class="btn btn-sm btn-outline-success" title="Gọi đi làm">
+                                                    <i class="fas fa-briefcase"></i> Gọi
+                                                </button>
+                                            <?php endif; ?>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                Không tìm thấy hướng dẫn viên nào.
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                    </tbody>
             </table>
         </div>
     </div>

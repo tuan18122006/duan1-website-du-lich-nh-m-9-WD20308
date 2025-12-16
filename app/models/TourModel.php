@@ -270,8 +270,15 @@ class TourModel extends Model
         return $this->db->prepare($sql)->fetchAll();
     }
 
-    public function getToursByGuide($guide_id, $keyword = null, $date = null) {
-        $sql = "SELECT DISTINCT t.*, s.schedule_id, s.start_date as schedule_start, s.end_date as schedule_end
+public function getToursByGuide($guide_id, $keyword = null, $date = null) {
+        // [CẬP NHẬT] Thêm s.booked, s.stock và đếm số người đã check-in (is_present = 1)
+        $sql = "SELECT DISTINCT t.*, 
+                    s.schedule_id, 
+                    s.start_date as schedule_start, 
+                    s.end_date as schedule_end,
+                    s.booked, 
+                    s.stock,
+                    (SELECT COUNT(*) FROM booking_passengers bp WHERE bp.schedule_id = s.schedule_id AND bp.is_present = 1) as checked_in
                 FROM tours t
                 JOIN tour_schedules s ON t.tour_id = s.tour_id
                 WHERE s.guide_id = :guide_id";
@@ -284,9 +291,8 @@ class TourModel extends Model
             $params[':kw'] = "%$keyword%";
         }
 
-        // 2. [THÊM MỚI] Tìm theo Ngày khởi hành
+        // 2. Tìm theo Ngày khởi hành
         if ($date) {
-            // Dùng hàm DATE() để chỉ so sánh ngày, bỏ qua giờ phút
             $sql .= " AND DATE(s.start_date) = :date";
             $params[':date'] = $date;
         }

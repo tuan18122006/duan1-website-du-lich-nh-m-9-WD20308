@@ -23,6 +23,22 @@
             </a>
         <?php endif; ?>
     </div>
+
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <?= $_SESSION['success'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> <?= $_SESSION['error'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
     <form method="GET" class="row g-3 mb-4 p-3 bg-white rounded shadow-sm">
         <input type="hidden" name="act" value="<?= $_GET['act'] ?>">
         
@@ -42,6 +58,7 @@
             <a href="index.php?act=<?= $_GET['act'] ?>" class="btn btn-outline-secondary w-100">Đặt lại</a>
         </div>
     </form>
+
     <div class="card shadow border-0 rounded-4">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 fw-bold text-secondary">Danh sách đơn hàng</h5>

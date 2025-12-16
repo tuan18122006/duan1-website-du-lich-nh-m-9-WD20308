@@ -178,9 +178,9 @@ class BookingModel extends Model
         return $stmt->fetchAll();
     }
 
-    // Lấy danh sách khách theo Schedule (HDV xem để điểm danh)
-    public function getPassengersBySchedule($schedule_id)
+public function getPassengersBySchedule($schedule_id)
     {
+        // Thêm b.status vào dòng SELECT dưới đây
         $sql = "SELECT 
             bp.id AS passenger_id, 
             bp.full_name, 
@@ -189,11 +189,13 @@ class BookingModel extends Model
             bp.is_present,  
             bp.is_booker, 
             b.customer_phone,
+            b.status,  /* <--- THÊM DÒNG NÀY */
             b.customer_name AS booker_name
         FROM booking_passengers bp
         JOIN bookings b ON bp.booking_id = b.id
         WHERE bp.schedule_id = :schedule_id AND b.status != 'Đã hủy'
         ORDER BY b.id ASC"; 
+        
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':schedule_id' => $schedule_id]);
         return $stmt->fetchAll();
